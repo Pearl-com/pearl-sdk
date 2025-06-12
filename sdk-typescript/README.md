@@ -1,8 +1,8 @@
-Pearl SDK for TypeScript
+# Pearl SDK for TypeScript
 
 A robust and easy-to-use SDK for interacting with the Pearl API, providing streamlined access to AI chat completions, webhook management, and secure signature verification utilities.
 
-✨ Features
+## ✨ Features
 Chat Completions: Interact with Pearl's AI models for conversational and text generation tasks.
 
 Webhook Management: Programmatically register and update webhook endpoints to receive real-time notifications from Pearl.
@@ -13,17 +13,18 @@ Built-in Retry Logic: Automatic retries with exponential backoff and jitter for 
 
 Configurable Client: Customize API key, base URL, timeout, and retry policy.
 
-📦 Installation
+## 📦 Installation
 To install the Pearl SDK, use npm or yarn:
 
+```bash
 npm install pearl-sdk
-# or
-yarn add pearl-sdk
+```
 
-🚀 Usage
+## 🚀 Usage
 Initializing the Client
 The PearlClient is your main entry point for interacting with the Pearl API. Initialize it with your apiKey. You can also configure a custom baseUrl, timeout, and retryPolicy.
 
+```ts
 import { PearlClient } from 'pearl-sdk';
 
 const client = new PearlClient({
@@ -38,10 +39,12 @@ const client = new PearlClient({
   //   maxRetryDelayMs: 30000 // Maximum delay for exponential backoff (defaults to 30 seconds)
   // }
 });
+```
 
 Chat Completions
 Send messages to the Pearl API's chat completions endpoint.
 
+```ts
 import { PearlClient, ChatCompletionRequest } from 'pearl-sdk';
 
 const client = new PearlClient({ apiKey: 'YOUR_PEARL_API_KEY' });
@@ -68,10 +71,12 @@ async function getChatCompletion() {
 }
 
 getChatCompletion();
+```
 
 Webhook Signature Verification
 Verify incoming webhook requests from Pearl to ensure their authenticity. You'll need the raw request body and the signature from the X-Pearl-API-Signature header.
 
+```ts
 import { PearlClient } from 'pearl-sdk';
 
 const client = new PearlClient({ apiKey: 'YOUR_PEARL_API_KEY' }); // The API key acts as the webhook secret
@@ -97,23 +102,12 @@ function handleWebhook(req: any, res: any) {
     res.status(500).send('Internal Server Error');
   }
 }
-
-// Example of how to get raw body in Express (requires body-parser or express.json with type: 'application/json' limit)
-/*
-import express from 'express';
-const app = express();
-app.use(express.json({
-  verify: (req: any, res, buf) => {
-    req.rawBody = buf.toString(); // Store raw body for signature verification
-  }
-}));
-app.post('/my-webhook-endpoint', handleWebhook);
-app.listen(3000, () => console.log('Webhook listener on port 3000'));
-*/
+```
 
 Webhook Endpoint Management
 Register or update your webhook endpoint with Pearl.
 
+```ts
 import { PearlClient, WebhookEndpointRequest } from 'pearl-sdk';
 
 const client = new PearlClient({ apiKey: 'YOUR_PEARL_API_KEY' });
@@ -139,40 +133,39 @@ async function manageWebhookEndpoint() {
 }
 
 manageWebhookEndpoint();
+```
 
-🛠️ Development
+## 🛠️ Development
 To build and test the SDK locally:
 
 Clone the repository:
 
+```bash
 git clone https://github.com/Pearl-com/pearl-sdk.git
 cd pearl-sdk
+```
 
 Install dependencies:
 
+```bash
 npm install
+```
 
 Build the SDK:
 This compiles the TypeScript source files into JavaScript and generates type declaration files (.d.ts) in the dist/ directory.
 
+```bash
 npm run build
-
+```
 Run Tests:
 Execute the unit tests to ensure all components are functioning as expected.
 
+```bash
 npm test
+```
 
-Run Tests in Watch Mode (for development):
-
-npm run test:watch
-
-Development Watch Mode:
-Automatically recompile TypeScript files on changes.
-
-npm run dev
-
-📄 License
+## 📄 License
 This project is licensed under the MIT License. See the LICENSE file for details.
 
-👤 Author
+## 👤 Author
 Created by Your Name
