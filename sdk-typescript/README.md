@@ -3,15 +3,15 @@
 A robust and easy-to-use SDK for interacting with the Pearl API, providing streamlined access to AI chat completions, webhook management, and secure signature verification utilities.
 
 ## ✨ Features
-Chat Completions: Interact with Pearl's AI models for conversational and text generation tasks.
+**Chat Completions**: Interact with Pearl's AI models for conversational and text generation tasks.
 
-Webhook Management: Programmatically register and update webhook endpoints to receive real-time notifications from Pearl.
+**Webhook Management**: Programmatically register and update webhook endpoints to receive real-time notifications from Pearl.
 
-Webhook Signature Verification: Securely verify the authenticity and integrity of incoming webhook payloads.
+**Webhook Signature Verification**: Securely verify the authenticity and integrity of incoming webhook payloads.
 
-Built-in Retry Logic: Automatic retries with exponential backoff and jitter for transient API errors, enhancing reliability.
+**Built-in Retry Logic**: Automatic retries with exponential backoff and jitter for transient API errors, enhancing reliability.
 
-Configurable Client: Customize API key, base URL, timeout, and retry policy.
+**Configurable Client**: Customize API key, base URL, timeout, and retry policy.
 
 ## 📦 Installation
 To install the Pearl SDK, use npm or yarn:
