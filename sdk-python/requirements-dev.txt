@@ -1,0 +1,8 @@
+requests>=2.25.1
+urllib3>=1.26.0
+
+# Development dependencies
+pytest>=6.0.0
+pytest-cov>=2.10.0
+build>=0.8.0
+twine>=4.0.0

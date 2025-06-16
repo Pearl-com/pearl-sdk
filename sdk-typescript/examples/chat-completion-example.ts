@@ -3,7 +3,7 @@
 // 2. Transpile and run:
 //    npx ts-node examples/chat-completion-example.ts
 
-import { PearlClient, ChatCompletionRequest } from 'pearl-sdk'; // Import from the installed package name
+import { PearlClient, ChatCompletionRequest, CONVERSATION_MODES } from 'pearl-sdk';
 import { v4 as uuidv4 } from 'uuid'; // Ensure uuid is installed: npm install uuid
 import axios from 'axios';
 
@@ -37,27 +37,23 @@ async function runChatCompletionExample() {
   try {
     console.log("\n--- Starting Chat Completion Example ---");
 
-    // Making a chat completion request with custom headers
-    const customHeaders = {
-      'X-Custom-Header': 'MyCustomValue',
-      'X-Request-ID': uuidv4()
-    };
-
     const chatRequest: ChatCompletionRequest = {
-      model: "expert", // Specify the model to use (e.g., "expert", "pearl-ai")
+      model: "pearl-ai",
       messages: [
         {
           role: "user",
           content: "Explain large language models in simple terms." // The user's message
         }
       ],
-      metadata: { sessionId: sessionId}
+      metadata: {
+        mode: CONVERSATION_MODES.PEARL_AI
+      }
     };
 
     console.log("Sending chat completion request...");
     const chatResponse = await client.chat.sendCompletion(
       chatRequest,
-      { headers: customHeaders } // Apply custom headers to the request
+      sessionId
     );
 
     console.log("\n--- Chat Completion API Response ---");

@@ -45,25 +45,23 @@ Chat Completions
 Send messages to the Pearl API's chat completions endpoint.
 
 ```ts
-import { PearlClient, ChatCompletionRequest } from 'pearl-sdk';
+import { PearlClient, ChatCompletionRequest, CONVERSATION_MODES } from 'pearl-sdk';
 
 const client = new PearlClient({ apiKey: 'YOUR_PEARL_API_KEY' });
 
 async function getChatCompletion() {
   const chatRequest: ChatCompletionRequest = {
-    model: "expert", // Or other available models like "pearl-ai"
+    model: "pearl-ai",
     messages: [
       { role: "user", content: "What is quantum computing?" },
       { role: "assistant", content: "Quantum computing is a new type of computing that uses quantum-mechanical phenomena." },
       { role: "user", content: "Can you simplify that for a 5-year-old?" }
     ],
-    metadata: {
-      sessionId: "user-session-123"
-    }
+    metadata: { mode: CONVERSATION_MODES.PEARL_AI }
   };
 
   try {
-    const response = await client.chat.sendCompletion(chatRequest);
+    const response = await client.chat.sendCompletion(chatRequest, "user-session-123");
     console.log("Assistant's response:", response.choices[0].message.content);
   } catch (error) {
     console.error("Error getting chat completion:", error);
@@ -72,6 +70,28 @@ async function getChatCompletion() {
 
 getChatCompletion();
 ```
+
+### Conversation Modes
+
+Pearl supports different conversation modes that control how the AI responds. The SDK provides constants for these modes:
+
+```ts
+import { CONVERSATION_MODES } from 'pearl-sdk';
+
+// Available conversation modes:
+// CONVERSATION_MODES.PEARL_AI - AI-only response mode
+// CONVERSATION_MODES.PEARL_AI_VERIFIED - AI with expert verification mode
+// CONVERSATION_MODES.PEARL_AI_EXPERT - AI with expert transition mode
+// CONVERSATION_MODES.EXPERT - Direct expert connection mode
+
+const chatRequest: ChatCompletionRequest = {
+  model: "pearl-ai",
+  messages: [{ role: "user", content: "Hello!" }],
+  metadata: { mode: CONVERSATION_MODES.PEARL_AI_EXPERT }
+};
+```
+
+For more information about conversation modes, see the [Pearl API documentation](https://www.pearl.com/api/docs/conversation-modes).
 
 Webhook Signature Verification
 Verify incoming webhook requests from Pearl to ensure their authenticity. You'll need the raw request body and the signature from the X-Pearl-API-Signature header.
@@ -112,7 +132,7 @@ import { PearlClient, WebhookEndpointRequest } from 'pearl-sdk';
 
 const client = new PearlClient({ apiKey: 'YOUR_PEARL_API_KEY' });
 
-async function manageWebhookEndpoint() {
+async function registerWebhookEndpoint() {
   const endpointUrl = 'https://your-app.com/api/pearl-webhooks';
   const request: WebhookEndpointRequest = { endpoint: endpointUrl };
 
@@ -132,7 +152,7 @@ async function manageWebhookEndpoint() {
   }
 }
 
-manageWebhookEndpoint();
+registerWebhookEndpoint();
 ```
 
 ## 🛠️ Development

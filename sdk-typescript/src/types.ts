@@ -1,4 +1,23 @@
 /**
+ * Conversation mode constants for Pearl API.
+ */
+export const CONVERSATION_MODES = {
+    /** AI-only response mode */
+    PEARL_AI: 'pearl-ai',
+    /** AI with expert verification mode */
+    PEARL_AI_VERIFIED: 'pearl-ai-verified',
+    /** AI with expert transition mode */
+    PEARL_AI_EXPERT: 'pearl-ai-expert',
+    /** Direct expert connection mode */
+    EXPERT: 'expert'
+} as const;
+
+/**
+ * Type for conversation mode values
+ */
+export type ConversationMode = typeof CONVERSATION_MODES[keyof typeof CONVERSATION_MODES];
+
+/**
  * Configuration options for the retry policy.
  */
 export interface RetryPolicyConfig {
@@ -57,17 +76,7 @@ export interface ChatCompletionResponseMessage {
 export interface ChatCompletionChoice {
     index: number;
     message: ChatCompletionResponseMessage;
-    logprobs: null;
     finish_reason: string;
-}
-
-/**
- * Usage statistics for a completion request.
- */
-export interface CompletionResponseUsage {
-    prompt_tokens: number;
-    completion_tokens: number;
-    total_tokens: number;
 }
 
 /**
@@ -76,10 +85,7 @@ export interface CompletionResponseUsage {
 export interface ChatCompletionResponse {
     id: string;
     choices: ChatCompletionChoice[];
-    object: string;
     created: number;
-    model: string;
-    usage: CompletionResponseUsage;
     questionId: string | null;
     userId: string | null;
 }

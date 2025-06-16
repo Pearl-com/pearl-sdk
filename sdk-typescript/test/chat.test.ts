@@ -41,8 +41,10 @@ describe('Chat', () => {
     const mockRequest: ChatCompletionRequest = {
       model: "test-model",
       messages: [{ role: "user", content: "Test message" }],
-      metadata: { sessionId: "123", source: "test" }
+      metadata: { source: "test" }
     };
+
+    const testSessionId = "test-session-123";
 
     const mockResponseData: ChatCompletionResponse = {
       id: "chatcmpl-test",
@@ -55,17 +57,9 @@ describe('Chat', () => {
           role: "assistant",
           content: "Mocked assistant response."
         },
-        logprobs: null,
         finish_reason: "stop"
       }],
-      object: "chat.completion",
       created: 1678886400,
-      model: "test-model",
-      usage: {
-        prompt_tokens: 10,
-        completion_tokens: 20,
-        total_tokens: 30
-      },
       questionId: null,
       userId: null
     };
@@ -74,12 +68,15 @@ describe('Chat', () => {
       // Mock the successful response from axios.post
       mockAxiosInstance.post.mockResolvedValueOnce({ data: mockResponseData });
 
-      const response = await chat.sendCompletion(mockRequest);
+      const response = await chat.sendCompletion(mockRequest, testSessionId);
 
       // Expect apiClient.post to have been called once
       expect(mockAxiosInstance.post).toHaveBeenCalledTimes(1);
-      // Expect it to be called with the correct endpoint and request payload
-      expect(mockAxiosInstance.post).toHaveBeenCalledWith('/chat/completions', mockRequest, undefined);
+      // Expect it to be called with the correct endpoint and request payload including sessionId
+      expect(mockAxiosInstance.post).toHaveBeenCalledWith('/chat/completions', {
+        ...mockRequest,
+        metadata: { ...mockRequest.metadata, sessionId: testSessionId }
+      }, undefined);
 
       // Expect the method to return the data part of the Axios response
       expect(response).toEqual(mockResponseData);
@@ -93,10 +90,13 @@ describe('Chat', () => {
 
       mockAxiosInstance.post.mockResolvedValueOnce({ data: mockResponseData });
 
-      const response = await chat.sendCompletion(mockRequest, mockRequestConfig);
+      const response = await chat.sendCompletion(mockRequest, testSessionId, mockRequestConfig);
 
       expect(mockAxiosInstance.post).toHaveBeenCalledTimes(1);
-      expect(mockAxiosInstance.post).toHaveBeenCalledWith('/chat/completions', mockRequest, mockRequestConfig);
+      expect(mockAxiosInstance.post).toHaveBeenCalledWith('/chat/completions', {
+        ...mockRequest,
+        metadata: { ...mockRequest.metadata, sessionId: testSessionId }
+      }, mockRequestConfig);
       expect(response).toEqual(mockResponseData);
     });
 
@@ -104,7 +104,7 @@ describe('Chat', () => {
       const mockError = new Error('Network error');
       mockAxiosInstance.post.mockRejectedValueOnce(mockError);
 
-      await expect(chat.sendCompletion(mockRequest)).rejects.toBe(mockError);
+      await expect(chat.sendCompletion(mockRequest, testSessionId)).rejects.toBe(mockError);
     });
   });
 });

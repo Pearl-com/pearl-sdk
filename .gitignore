@@ -107,3 +107,52 @@ dist/
 
 # Windows specific
 Thumbs.db
+
+# Python specific additions
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+downloads/
+eggs/
+.eggs/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+.tox/
+.venv/
+env/
+venv/
+.env
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# IDE files
+.idea/
+*.swp
+*.swo
+
+# Test artifacts and demos
+test_sdk.py
+validate.py
+demo.py
+simple_test.py

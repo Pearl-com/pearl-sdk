@@ -1,4 +1,5 @@
 export { PearlClient, PearlClientConfig } from './core/PearlClient';
+export { CONVERSATION_MODES } from './types';
 
 export type {
     // Configuration types
@@ -6,14 +7,13 @@ export type {
 
     // Base request types
     BaseRequest,
-
-    // Chat-related types
+      // Chat-related types
     ChatMessage,
     ChatCompletionRequest,
     ChatCompletionResponseMessage,
     ChatCompletionChoice,
-    CompletionResponseUsage,
     ChatCompletionResponse,
+    ConversationMode,
 
     // Shared types
     ExpertInfo, // Used in both chat responses and webhooks
