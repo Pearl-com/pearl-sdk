@@ -106,24 +106,28 @@ class RetryHTTPAdapter(HTTPAdapter):
         retry_count = 0
         
         while True:
+            response = None
+            status_code = None
+            exception_to_raise = None
+
             try:
                 response = super().send(request, **kwargs)
-                
-                # If we get here, the request succeeded
-                return response
-                
+                status_code = response.status_code
+
             except requests.RequestException as e:
                 # Extract status code if available
-                status_code = None
                 if hasattr(e, 'response') and e.response is not None:
                     status_code = e.response.status_code
-                
-                # Check if we should retry
-                if self.retry_policy.should_retry(retry_count, status_code):
-                    retry_count += 1
-                    delay_ms = self.retry_policy.calculate_retry_delay(retry_count)
-                    time.sleep(delay_ms / 1000.0)  # Convert to seconds
-                    continue
-                else:
-                    # No more retries, re-raise the exception
-                    raise
+                exception_to_raise = e
+
+            # Check if we should retry based on status code
+            if self.retry_policy.should_retry(retry_count, status_code):
+                retry_count += 1
+                delay_ms = self.retry_policy.calculate_retry_delay(retry_count)
+                time.sleep(delay_ms / 1000.0)
+                continue
+
+            if exception_to_raise:
+                raise exception_to_raise
+
+            return response
