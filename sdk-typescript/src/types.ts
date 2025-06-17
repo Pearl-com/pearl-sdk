@@ -13,6 +13,11 @@ export const CONVERSATION_MODES = {
 } as const;
 
 /**
+ * Default model for Pearl API requests.
+ */
+export const DEFAULT_MODEL = 'pearl-ai' as const;
+
+/**
  * Type for conversation mode values
  */
 export type ConversationMode = typeof CONVERSATION_MODES[keyof typeof CONVERSATION_MODES];

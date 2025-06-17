@@ -52,7 +52,6 @@ def run_chat_completion_example():
         chat_response = client.chat.send_completion(
             messages=messages,
             session_id=session_id,
-            model="pearl-ai",  # optional, defaults to "pearl-ai"
             mode=ConversationModes.PEARL_AI  # optional, defaults to PEARL_AI
         )
 

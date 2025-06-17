@@ -16,6 +16,10 @@ class ConversationModes:
     EXPERT = 'expert'
 
 
+# Default model for Pearl API requests
+DEFAULT_MODEL = 'pearl-ai'
+
+
 @dataclass
 class RetryPolicyConfig:
     """Configuration options for the retry policy."""

@@ -4,7 +4,7 @@ Manages chat-related operations, structured under `client.chat`.
 
 from typing import Optional, Dict, Any, List
 import requests
-from pearl_sdk.types import ChatMessage, ChatCompletionResponse, ConversationModes
+from pearl_sdk.types import ChatMessage, ChatCompletionResponse, ConversationModes, DEFAULT_MODEL
 
 
 class Chat:
@@ -23,8 +23,8 @@ class Chat:
         self,
         messages: List[ChatMessage],
         session_id: str,
-        model: str = "pearl-ai",
         mode: str = ConversationModes.PEARL_AI,
+        model: str = DEFAULT_MODEL,
         request_config: Optional[Dict[str, Any]] = None
     ) -> ChatCompletionResponse:
         """
@@ -36,8 +36,8 @@ class Chat:
         Args:
             messages: Array of chat messages for the conversation.
             session_id: Unique identifier for the chat session.
-            model: The model to use (optional, defaults to "pearl-ai").
             mode: The conversation mode (optional, defaults to PEARL_AI).
+            model: The model to use (optional, defaults to "pearl-ai").
             request_config: Optional request configuration (e.g., custom headers, timeout override).
             
         Returns:

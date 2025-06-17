@@ -41,7 +41,6 @@ const client = new PearlClient('YOUR_API_KEY');
 const response = await client.chat.sendCompletion(
   [{ role: "user", content: "Hello!" }],  // messages
   "user-session-123",                     // sessionId
-  "pearl-ai",                             // model (optional)
   CONVERSATION_MODES.PEARL_AI             // mode (optional)
 );
 ```
@@ -58,7 +57,6 @@ client = PearlClient(api_key='YOUR_API_KEY')
 response = client.chat.send_completion(
     messages=[ChatMessage(role="user", content="Hello!")],
     session_id="user-session-123",
-    model="pearl-ai",                     # optional
     mode=ConversationModes.PEARL_AI       # optional
 )
 ```

@@ -65,7 +65,6 @@ def get_chat_completion():
         response = client.chat.send_completion(
             messages=messages,                      # messages list
             session_id="user-session-123",          # session ID
-            model="pearl-ai",                       # model (optional)
             mode=ConversationModes.PEARL_AI         # mode (optional)
         )
         print("Assistant's response:", response.choices[0].message.content)
@@ -91,7 +90,6 @@ from pearl_sdk import ConversationModes
 response = client.chat.send_completion(
     messages=[ChatMessage(role="user", content="Hello!")],
     session_id="user-session-123",
-    model="pearl-ai",
     mode=ConversationModes.PEARL_AI_EXPERT
 )
 ```

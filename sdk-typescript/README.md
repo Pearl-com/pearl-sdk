@@ -60,7 +60,6 @@ async function getChatCompletion() {
     const response = await client.chat.sendCompletion(
       messages,                           // messages array
       "user-session-123",                 // sessionId
-      "pearl-ai",                         // model (optional)
       CONVERSATION_MODES.PEARL_AI         // mode (optional)
     );
     console.log("Assistant's response:", response.choices[0].message.content);
@@ -88,7 +87,6 @@ import { CONVERSATION_MODES } from 'pearl-sdk';
 const response = await client.chat.sendCompletion(
   [{ role: "user", content: "Hello!" }],
   "user-session-123",
-  "pearl-ai",
   CONVERSATION_MODES.PEARL_AI_EXPERT
 );
 ```

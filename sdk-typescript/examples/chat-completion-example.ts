@@ -42,12 +42,10 @@ async function runChatCompletionExample() {
         content: "Explain large language models in simple terms." // The user's message
       }
     ] as ChatMessage[];
-
     console.log("Sending chat completion request...");
     const chatResponse = await client.chat.sendCompletion(
       messages,
       sessionId,
-      "pearl-ai", // model (optional, defaults to "pearl-ai")
       CONVERSATION_MODES.PEARL_AI // mode (optional, defaults to PEARL_AI)
     );
 

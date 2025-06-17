@@ -65,7 +65,7 @@ describe('Chat', () => {
       // Mock the successful response from axios.post
       mockAxiosInstance.post.mockResolvedValueOnce({ data: mockResponseData });
 
-      const response = await chat.sendCompletion(testMessages, testSessionId, testModel, testMode);
+      const response = await chat.sendCompletion(testMessages, testSessionId, testMode, testModel);
 
       // Expect apiClient.post to have been called once
       expect(mockAxiosInstance.post).toHaveBeenCalledTimes(1);
@@ -88,7 +88,7 @@ describe('Chat', () => {
 
       mockAxiosInstance.post.mockResolvedValueOnce({ data: mockResponseData });
 
-      const response = await chat.sendCompletion(testMessages, testSessionId, testModel, testMode, mockRequestConfig);
+      const response = await chat.sendCompletion(testMessages, testSessionId, testMode, testModel, mockRequestConfig);
 
       expect(mockAxiosInstance.post).toHaveBeenCalledTimes(1);
       expect(mockAxiosInstance.post).toHaveBeenCalledWith('/chat/completions', {
@@ -103,7 +103,7 @@ describe('Chat', () => {
       const mockError = new Error('Network error');
       mockAxiosInstance.post.mockRejectedValueOnce(mockError);
 
-      await expect(chat.sendCompletion(testMessages, testSessionId, testModel, testMode)).rejects.toBe(mockError);
+      await expect(chat.sendCompletion(testMessages, testSessionId, testMode, testModel)).rejects.toBe(mockError);
     });
   });
 });

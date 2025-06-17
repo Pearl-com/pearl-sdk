@@ -62,7 +62,7 @@ class TestChat:
         self.mock_session.post.return_value = mock_response
 
         # Act
-        result = self.chat.send_completion(test_messages, test_session_id, test_model, test_mode)
+        result = self.chat.send_completion(test_messages, test_session_id, test_mode, test_model)
 
         # Assert
         self.mock_session.post.assert_called_once_with(
@@ -104,7 +104,7 @@ class TestChat:
         self.mock_session.post.return_value = mock_response
 
         # Act
-        result = self.chat.send_completion(test_messages, test_session_id, test_model, mode="PEARL_AI", request_config=request_config)
+        result = self.chat.send_completion(test_messages, test_session_id, mode="PEARL_AI", model=test_model, request_config=request_config)
 
         # Assert
         self.mock_session.post.assert_called_once_with(
@@ -131,7 +131,7 @@ class TestChat:
 
         # Act & Assert
         with pytest.raises(requests.RequestException, match="API Error"):
-            self.chat.send_completion(test_messages, test_session_id, test_model)
+            self.chat.send_completion(test_messages, test_session_id, model=test_model)
 
     def test_parse_chat_completion_response_with_expert_info(self):
         """Test parsing response with expert information."""

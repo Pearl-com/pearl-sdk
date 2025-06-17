@@ -13,6 +13,9 @@ from .types import (
     # Conversation mode constants
     ConversationModes,
     
+    # Default values
+    DEFAULT_MODEL,
+    
     # Base request types
     BaseRequest,
     
@@ -43,6 +46,7 @@ __all__ = [
     'PearlClient',
     'RetryPolicyConfig',
     'ConversationModes',
+    'DEFAULT_MODEL',
     'BaseRequest',
     'ChatMessage',
     'ChatCompletionRequest',
