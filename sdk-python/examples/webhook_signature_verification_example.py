@@ -11,7 +11,7 @@ To run this example:
 """
 
 import json
-from pearl_sdk import PearlClient, PearlClientConfig
+from pearl_sdk import PearlClient
 
 # --- IMPORTANT: Configure your API Key ---
 # Replace 'YOUR_PEARL_API_KEY' with your actual Pearl API Key.
@@ -45,7 +45,7 @@ def run_verification_example():
 
     # Initialize PearlClient with the API key.
     # The Webhooks resource will use this key internally as its webhook secret.
-    client = PearlClient(PearlClientConfig(api_key=API_KEY))
+    client = PearlClient(api_key=API_KEY)
 
     try:
         # Step 1: Compute the expected signature for the example payload.

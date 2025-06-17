@@ -37,7 +37,7 @@ npm install pearl-sdk
 ```typescript
 import { PearlClient, CONVERSATION_MODES } from 'pearl-sdk';
 
-const client = new PearlClient({ apiKey: 'YOUR_API_KEY' });
+const client = new PearlClient('YOUR_API_KEY');
 const response = await client.chat.sendCompletion({
   model: "pearl-ai",
   messages: [{ role: "user", content: "Hello!" }],
@@ -51,9 +51,9 @@ pip install pearl-sdk
 ```
 
 ```python
-from pearl_sdk import PearlClient, PearlClientConfig, ChatCompletionRequest, ChatMessage, ConversationModes
+from pearl_sdk import PearlClient, ChatCompletionRequest, ChatMessage, ConversationModes
 
-client = PearlClient(PearlClientConfig(api_key='YOUR_API_KEY'))
+client = PearlClient(api_key='YOUR_API_KEY')
 response = client.chat.send_completion(ChatCompletionRequest(
     model="pearl-ai",
     messages=[ChatMessage(role="user", content="Hello!")],

@@ -8,7 +8,6 @@ to AI chat completions, webhook management, and secure signature verification ut
 from .client import PearlClient
 from .types import (
     # Configuration types
-    PearlClientConfig,
     RetryPolicyConfig,
     
     # Conversation mode constants
@@ -42,7 +41,6 @@ __email__ = "support@pearl.com"
 
 __all__ = [
     'PearlClient',
-    'PearlClientConfig',
     'RetryPolicyConfig',
     'ConversationModes',
     'BaseRequest',

@@ -24,7 +24,7 @@ async function runWebhookManagementExample() {
     return;
   }
 
-  const client = new PearlClient({ apiKey: API_KEY });
+  const client = new PearlClient(API_KEY);
 
   try {
     console.log("\n--- Starting Webhook Management Example ---");

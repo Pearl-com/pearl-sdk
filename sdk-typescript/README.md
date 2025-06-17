@@ -21,33 +21,33 @@ npm install pearl-sdk
 ```
 
 ## 🚀 Usage
-Initializing the Client
+### Initializing the Client
 The PearlClient is your main entry point for interacting with the Pearl API. Initialize it with your apiKey. You can also configure a custom baseUrl, timeout, and retryPolicy.
 
 ```ts
 import { PearlClient } from 'pearl-sdk';
 
-const client = new PearlClient({
-  apiKey: 'YOUR_PEARL_API_KEY',
+const client = new PearlClient(
+  'YOUR_PEARL_API_KEY',
   // Optional configurations:
-  // baseUrl: 'https://api.pearl.com/api/v1/', // Defaults to 'https://api.pearl.com/api/v1/'
-  // timeout: 30000, // Request timeout in milliseconds, defaults to 30000 (30 seconds)
-  // retryPolicy: {
+  // 'https://api.pearl.com/api/v1/', // baseUrl - defaults to 'https://api.pearl.com/api/v1/'
+  // 30000, // timeout in milliseconds, defaults to 30000 (30 seconds)
+  // { // retryPolicy
   //   enabled: true,         // Enable/disable retries (defaults to true)
   //   maxRetries: 30,        // Max retry attempts for specific errors (defaults to 30)
   //   retryDelayMs: 100,     // Initial delay for exponential backoff (defaults to 100ms)
   //   maxRetryDelayMs: 30000 // Maximum delay for exponential backoff (defaults to 30 seconds)
   // }
-});
+);
 ```
 
-Chat Completions
+### Chat Completions
 Send messages to the Pearl API's chat completions endpoint.
 
 ```ts
 import { PearlClient, ChatCompletionRequest, CONVERSATION_MODES } from 'pearl-sdk';
 
-const client = new PearlClient({ apiKey: 'YOUR_PEARL_API_KEY' });
+const client = new PearlClient('YOUR_PEARL_API_KEY');
 
 async function getChatCompletion() {
   const chatRequest: ChatCompletionRequest = {
@@ -99,7 +99,7 @@ Verify incoming webhook requests from Pearl to ensure their authenticity. You'll
 ```ts
 import { PearlClient } from 'pearl-sdk';
 
-const client = new PearlClient({ apiKey: 'YOUR_PEARL_API_KEY' }); // The API key acts as the webhook secret
+const client = new PearlClient('YOUR_PEARL_API_KEY'); // The API key acts as the webhook secret
 
 // In your webhook endpoint
 function handleWebhook(req: any, res: any) {
@@ -130,7 +130,7 @@ Register or update your webhook endpoint with Pearl.
 ```ts
 import { PearlClient, WebhookEndpointRequest } from 'pearl-sdk';
 
-const client = new PearlClient({ apiKey: 'YOUR_PEARL_API_KEY' });
+const client = new PearlClient('YOUR_PEARL_API_KEY');
 
 async function registerWebhookEndpoint() {
   const endpointUrl = 'https://your-app.com/api/pearl-webhooks';
@@ -188,4 +188,4 @@ npm test
 This project is licensed under the MIT License. See the LICENSE file for details.
 
 ## 👤 Author
-Created by Your Name
+Created by Pearl.com

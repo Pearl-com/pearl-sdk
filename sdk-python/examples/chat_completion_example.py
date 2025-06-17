@@ -11,7 +11,7 @@ To run this example:
 """
 
 import uuid
-from pearl_sdk import PearlClient, PearlClientConfig, ChatCompletionRequest, ChatMessage, RetryPolicyConfig, ConversationModes
+from pearl_sdk import PearlClient, ChatCompletionRequest, ChatMessage, RetryPolicyConfig, ConversationModes
 
 # --- IMPORTANT: Configure your API Key ---
 # Replace 'YOUR_PEARL_API_KEY' with your actual Pearl API Key.
@@ -26,9 +26,8 @@ def run_chat_completion_example():
         return
 
     session_id = str(uuid.uuid4())
-
     # Initialize client with comprehensive configuration for demonstration
-    client = PearlClient(PearlClientConfig(
+    client = PearlClient(
         api_key=API_KEY,
         # base_url='https://api.pearl.com/api/v1',  # Uncomment and change if using a custom base URL
         timeout=60,  # 60 seconds timeout
@@ -38,7 +37,7 @@ def run_chat_completion_example():
             retry_delay_ms=100,
             max_retry_delay_ms=60000
         )
-    ))
+    )
 
     try:
         print("\n--- Starting Chat Completion Example ---")

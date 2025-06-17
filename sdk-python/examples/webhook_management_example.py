@@ -10,7 +10,7 @@ To run this example:
 3. Run: python examples/webhook_management_example.py
 """
 
-from pearl_sdk import PearlClient, PearlClientConfig, WebhookEndpointRequest
+from pearl_sdk import PearlClient, WebhookEndpointRequest
 
 # --- IMPORTANT: Configure your API Key and Webhook URL ---
 # Replace 'YOUR_PEARL_API_KEY' with your actual Pearl API Key.
@@ -31,7 +31,7 @@ def run_webhook_management_example():
         print("Exiting example as Webhook URL is a placeholder.")
         return
 
-    client = PearlClient(PearlClientConfig(api_key=API_KEY))
+    client = PearlClient(api_key=API_KEY)
 
     try:
         print("\n--- Starting Webhook Management Example ---")

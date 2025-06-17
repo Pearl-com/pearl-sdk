@@ -5,16 +5,6 @@ import { ProblemDetailsResponse, RetryPolicyConfig } from '../types';
 import { RetryPolicy } from './RetryPolicy';
 
 /**
- * Configuration options for the Pearl SDK client.
- */
-export interface PearlClientConfig {
-  apiKey: string;
-  baseUrl?: string;
-  timeout?: number;
-  retryPolicy?: RetryPolicyConfig;
-}
-
-/**
  * Main client for interacting with the Pearl API.
  */
 export class PearlClient {
@@ -34,20 +24,28 @@ export class PearlClient {
 
   /**
    * Initializes a new instance of the PearlClient.
-   * @param config Configuration options for the client.
+   * @param apiKey Your Pearl API key.
+   * @param baseUrl Base URL for the Pearl API (optional, defaults to https://api.pearl.com/api/v1/).
+   * @param timeout Request timeout in milliseconds (optional, defaults to 30000).
+   * @param retryPolicy Retry policy configuration (optional).
    * @throws Error if `apiKey` is missing or `timeout` is invalid.
    */
-  constructor(config: PearlClientConfig) {
-    if (!config || !config.apiKey) {
-      throw new Error("PearlClient configuration must include an apiKey.");
+  constructor(
+    apiKey: string,
+    baseUrl?: string,
+    timeout?: number,
+    retryPolicy?: RetryPolicyConfig
+  ) {
+    if (!apiKey) {
+      throw new Error("PearlClient must include an apiKey.");
     }
-    if (config.timeout !== undefined && (typeof config.timeout !== 'number' || config.timeout <= 0)) {
+    if (timeout !== undefined && (typeof timeout !== 'number' || timeout <= 0)) {
       throw new Error("Timeout must be a positive number if provided.");
     }
 
-    this.apiKey = config.apiKey;
-    this.baseUrl = config.baseUrl || 'https://api.pearl.com/api/v1/';
-    this.retryPolicy = new RetryPolicy(config.retryPolicy);
+    this.apiKey = apiKey;
+    this.baseUrl = baseUrl || 'https://api.pearl.com/api/v1/';
+    this.retryPolicy = new RetryPolicy(retryPolicy);
 
     this.apiClient = axios.create({
       baseURL: this.baseUrl,
@@ -55,7 +53,7 @@ export class PearlClient {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${this.apiKey}`,
       },
-      timeout: config.timeout ?? 30000,
+      timeout: timeout ?? 30000,
     });
 
     this.apiClient.interceptors.request.use(

@@ -20,19 +20,18 @@ async function runChatCompletionExample() {
   }
 
   const sessionId = uuidv4();
-
   // Initialize client with comprehensive configuration for demonstration
-  const client = new PearlClient({
-    apiKey: API_KEY,
-    // baseUrl: 'https://api.pearl.com/api/v1/', // Uncomment and change if using a custom base URL
-    timeout: 60000, // 60 seconds timeout
-    retryPolicy: {
+  const client = new PearlClient(
+    API_KEY,
+    undefined, // baseUrl - using default 'https://api.pearl.com/api/v1/'
+    60000, // 60 seconds timeout
+    { // retryPolicy
       enabled: true,
       maxRetries: 50,
       retryDelayMs: 100,
       maxRetryDelayMs: 60000
     }
-  });
+  );
 
   try {
     console.log("\n--- Starting Chat Completion Example ---");

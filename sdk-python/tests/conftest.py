@@ -2,7 +2,7 @@
 
 import pytest
 from unittest.mock import Mock
-from pearl_sdk import PearlClient, PearlClientConfig
+from pearl_sdk import PearlClient
 
 
 @pytest.fixture
@@ -20,7 +20,7 @@ def mock_base_url():
 @pytest.fixture
 def basic_client_config(mock_api_key):
     """Provide a basic client configuration for testing."""
-    return PearlClientConfig(api_key=mock_api_key)
+    return {"api_key": mock_api_key}
 
 
 @pytest.fixture

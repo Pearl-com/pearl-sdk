@@ -113,10 +113,4 @@ class WebhookEndpointRequest:
     endpoint: str
 
 
-@dataclass
-class PearlClientConfig:
-    """Configuration options for the Pearl SDK client."""
-    api_key: str
-    base_url: Optional[str] = None
-    timeout: Optional[int] = None
-    retry_policy: Optional[RetryPolicyConfig] = None
+

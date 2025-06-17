@@ -29,9 +29,9 @@ pip install pearl-sdk
 The `PearlClient` is your main entry point for interacting with the Pearl API. Initialize it with your `api_key`. You can also configure a custom `base_url`, `timeout`, and `retry_policy`.
 
 ```python
-from pearl_sdk import PearlClient, PearlClientConfig, RetryPolicyConfig
+from pearl_sdk import PearlClient, RetryPolicyConfig
 
-client = PearlClient(PearlClientConfig(
+client = PearlClient(
     api_key='YOUR_PEARL_API_KEY',
     # Optional configurations:
     # base_url='https://api.pearl.com/api/v1',  # Defaults to 'https://api.pearl.com/api/v1'
@@ -42,7 +42,7 @@ client = PearlClient(PearlClientConfig(
     #     retry_delay_ms=100,   # Initial delay for exponential backoff (defaults to 100ms)
     #     max_retry_delay_ms=30000  # Maximum delay for exponential backoff (defaults to 30 seconds)
     # )
-))
+)
 ```
 
 ### Chat Completions
@@ -50,9 +50,9 @@ client = PearlClient(PearlClientConfig(
 Send messages to the Pearl API's chat completions endpoint.
 
 ```python
-from pearl_sdk import PearlClient, PearlClientConfig, ChatCompletionRequest, ChatMessage, ConversationModes
+from pearl_sdk import PearlClient, ChatCompletionRequest, ChatMessage, ConversationModes
 
-client = PearlClient(PearlClientConfig(api_key='YOUR_PEARL_API_KEY'))
+client = PearlClient(api_key='YOUR_PEARL_API_KEY')
 
 def get_chat_completion():
     chat_request = ChatCompletionRequest(
@@ -101,10 +101,10 @@ For more information about conversation modes, see the [Pearl API documentation]
 Verify incoming webhook requests from Pearl to ensure their authenticity. You'll need the raw request body and the signature from the `X-Pearl-API-Signature` header.
 
 ```python
-from pearl_sdk import PearlClient, PearlClientConfig
+from pearl_sdk import PearlClient
 import json
 
-client = PearlClient(PearlClientConfig(api_key='YOUR_PEARL_API_KEY'))  # The API key acts as the webhook secret
+client = PearlClient(api_key='YOUR_PEARL_API_KEY')  # The API key acts as the webhook secret
 
 # In your webhook endpoint (e.g., Flask)
 def handle_webhook():
@@ -133,9 +133,9 @@ def handle_webhook():
 Register or update your webhook endpoint with Pearl.
 
 ```python
-from pearl_sdk import PearlClient, PearlClientConfig, WebhookEndpointRequest
+from pearl_sdk import PearlClient, WebhookEndpointRequest
 
-client = PearlClient(PearlClientConfig(api_key='YOUR_PEARL_API_KEY'))
+client = PearlClient(api_key='YOUR_PEARL_API_KEY')
 
 def register_webhook_endpoint():
     endpoint_url = 'https://your-app.com/api/pearl-webhooks'

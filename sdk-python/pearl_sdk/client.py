@@ -8,7 +8,7 @@ import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
-from .types import PearlClientConfig
+from .types import RetryPolicyConfig
 from .core.retry_policy import RetryPolicy
 from .resources.chat import Chat
 from .resources.webhooks import Webhooks
@@ -17,25 +17,34 @@ from .resources.webhooks import Webhooks
 class PearlClient:
     """Main client for interacting with the Pearl API."""
 
-    def __init__(self, config: PearlClientConfig):
+    def __init__(
+        self, 
+        api_key: str,
+        base_url: Optional[str] = None,
+        timeout: Optional[int] = None,
+        retry_policy: Optional[RetryPolicyConfig] = None
+    ):
         """
         Initializes a new instance of the PearlClient.
         
         Args:
-            config: Configuration options for the client.
+            api_key: Your Pearl API key.
+            base_url: Base URL for the Pearl API (optional, defaults to https://api.pearl.com/api/v1).
+            timeout: Request timeout in seconds (optional, defaults to 30).
+            retry_policy: Retry policy configuration (optional).
             
         Raises:
             ValueError: If `api_key` is missing or `timeout` is invalid.
         """
-        if not config or not config.api_key:
-            raise ValueError("PearlClient configuration must include an api_key.")
+        if not api_key:
+            raise ValueError("PearlClient must include an api_key.")
         
-        if config.timeout is not None and (not isinstance(config.timeout, (int, float)) or config.timeout <= 0):
+        if timeout is not None and (not isinstance(timeout, (int, float)) or timeout <= 0):
             raise ValueError("Timeout must be a positive number if provided.")
 
-        self._api_key = config.api_key
-        self._base_url = config.base_url or 'https://api.pearl.com/api/v1'
-        self._retry_policy = RetryPolicy(config.retry_policy)
+        self._api_key = api_key
+        self._base_url = base_url or 'https://api.pearl.com/api/v1'
+        self._retry_policy = RetryPolicy(retry_policy)
         
         # Configure the requests session
         self._session = requests.Session()
@@ -45,7 +54,7 @@ class PearlClient:
         })
         
         # Set timeout
-        timeout = config.timeout if config.timeout is not None else 30
+        timeout = timeout if timeout is not None else 30
         
         # Configure retry adapter with custom retry logic
         retry_adapter = RetryHTTPAdapter(

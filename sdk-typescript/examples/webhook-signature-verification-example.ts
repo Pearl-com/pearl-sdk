@@ -35,7 +35,7 @@ async function runVerificationExample() {
 
   // Initialize PearlClient with the API key.
   // The Webhooks resource will use this key internally as its webhook secret.
-  const client = new PearlClient({ apiKey: API_KEY });
+  const client = new PearlClient(API_KEY);
 
   try {
     // Step 1: Compute the expected signature for the example payload.

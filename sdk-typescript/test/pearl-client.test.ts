@@ -1,5 +1,5 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosError, AxiosResponse, InternalAxiosRequestConfig, AxiosRequestHeaders } from 'axios';
-import { PearlClient, PearlClientConfig } from '../src/index';
+import { PearlClient } from '../src/index';
 import { Chat } from '../src/resources/chat';
 import { Webhooks } from '../src/resources/webhooks';
 import { RetryPolicy } from '../src/core/RetryPolicy';
@@ -65,27 +65,26 @@ describe('PearlClient', () => {
 
   test('should throw an error if apiKey is missing', () => {
     // @ts-ignore - Intentionally test invalid config
-    expect(() => new PearlClient({})).toThrow("PearlClient configuration must include an apiKey.");
+    expect(() => new PearlClient('')).toThrow("PearlClient must include an apiKey.");
     // @ts-ignore - Intentionally test invalid config
-    expect(() => new PearlClient({ apiKey: undefined })).toThrow("PearlClient configuration must include an apiKey.");
+    expect(() => new PearlClient(undefined as any)).toThrow("PearlClient must include an apiKey.");
     // @ts-ignore - Intentionally test invalid config
-    expect(() => new PearlClient({ apiKey: null })).toThrow("PearlClient configuration must include an apiKey.");
+    expect(() => new PearlClient(null as any)).toThrow("PearlClient must include an apiKey.");
   });
 
   test('should throw an error if timeout is not a positive number', () => {
-    const commonConfig = { apiKey: MOCK_API_KEY };
     // @ts-ignore - Intentionally test invalid config
-    expect(() => new PearlClient({ ...commonConfig, timeout: 0 })).toThrow("Timeout must be a positive number if provided.");
+    expect(() => new PearlClient(MOCK_API_KEY, undefined, 0)).toThrow("Timeout must be a positive number if provided.");
     // @ts-ignore - Intentionally test invalid config
-    expect(() => new PearlClient({ ...commonConfig, timeout: -100 })).toThrow("Timeout must be a positive number if provided.");
+    expect(() => new PearlClient(MOCK_API_KEY, undefined, -100)).toThrow("Timeout must be a positive number if provided.");
     // @ts-ignore - Intentionally test invalid config
-    expect(() => new PearlClient({ ...commonConfig, timeout: 'abc' })).toThrow("Timeout must be a positive number if provided.");
+    expect(() => new PearlClient(MOCK_API_KEY, undefined, 'abc' as any)).toThrow("Timeout must be a positive number if provided.");
   });
 
   // --- Constructor Initialization Tests ---
 
   test('should initialize with provided config and default values', () => {
-    const client = new PearlClient({ apiKey: MOCK_API_KEY });
+    const client = new PearlClient(MOCK_API_KEY);
 
     expect(client['apiKey']).toBe(MOCK_API_KEY);
     expect(client['baseUrl']).toBe('https://api.pearl.com/api/v1/');
@@ -104,13 +103,12 @@ describe('PearlClient', () => {
   });
 
   test('should initialize with custom baseUrl and timeout', () => {
-    const customConfig: PearlClientConfig = {
-      apiKey: MOCK_API_KEY,
-      baseUrl: MOCK_BASE_URL,
-      timeout: 5000,
-      retryPolicy: { enabled: false, maxRetries: 5 }
-    };
-    const client = new PearlClient(customConfig);
+    const client = new PearlClient(
+      MOCK_API_KEY,
+      MOCK_BASE_URL,
+      5000,
+      { enabled: false, maxRetries: 5 }
+    );
 
     expect(client['apiKey']).toBe(MOCK_API_KEY);
     expect(client['baseUrl']).toBe(MOCK_BASE_URL);
@@ -121,7 +119,7 @@ describe('PearlClient', () => {
     }));
     expect(client.chat).toBeInstanceOf(Chat);
     expect(client.webhooks).toBeInstanceOf(Webhooks);
-    expect(MockedRetryPolicy).toHaveBeenCalledWith(customConfig.retryPolicy);
+    expect(MockedRetryPolicy).toHaveBeenCalledWith({ enabled: false, maxRetries: 5 });
   });
 
   // --- Axios Interceptor Tests ---
@@ -154,7 +152,7 @@ describe('PearlClient', () => {
       mockedAxios.create.mockReturnValue(mockAxiosInstanceCallable);
       mockedAxiosInstance = mockAxiosInstanceCallable;
 
-      client = new PearlClient({ apiKey: MOCK_API_KEY });
+      client = new PearlClient(MOCK_API_KEY);
 
       const requestUseCall = (mockedAxiosInstance.interceptors.request.use as jest.Mock).mock.calls[0];
       mockRequestInterceptor = requestUseCall ? requestUseCall[0] : jest.fn();
