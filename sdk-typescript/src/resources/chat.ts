@@ -1,5 +1,5 @@
 import { AxiosInstance, AxiosRequestConfig } from 'axios';
-import { ChatCompletionRequest, ChatCompletionResponse } from '../types';
+import { ChatCompletionRequest, ChatCompletionResponse, ChatMessage, CONVERSATION_MODES } from '../types';
 
 /**
  * Manages chat-related operations, structured under `client.chat`.
@@ -15,20 +15,27 @@ export class Chat {
    * Sends a chat completion request to the Pearl API's /chat/completions endpoint.
    * This method serves as the primary entry point for generating text completions,
    * whether for conversational AI or general text generation tasks.
-   * @param request The chat completion request payload.
-   * @param sessionId The session ID to associate with this request.
-   * @param requestConfig Optional Axios request configuration (e.g., custom headers, timeout override).
+   * @param messages Array of chat messages for the conversation.
+   * @param sessionId Unique identifier for the chat session.
+   * @param model The model to use (optional, defaults to "pearl-ai").
+   * @param mode The conversation mode (optional, defaults to PEARL_AI).
+   * @param requestConfig Optional Axios request configuration.
    * @returns A Promise that resolves to the ChatCompletionResponse on success.
-   * @throws AxiosError (or a wrapped custom error if you choose to reintroduce PearlError classes)
-   * if the API call fails or a network issue occurs. Errors are handled and logged by the
-   * Axios interceptors in `PearlClient`.
+   * @throws AxiosError if the API call fails or a network issue occurs.
    */
-  public async sendCompletion(request: ChatCompletionRequest, sessionId: string, requestConfig?: AxiosRequestConfig): Promise<ChatCompletionResponse> {
-    // Add sessionId to metadata
-    const requestWithSession = {
-      ...request,
+  public async sendCompletion(
+    messages: ChatMessage[],
+    sessionId: string,
+    model: string = "pearl-ai",
+    mode: string = CONVERSATION_MODES.PEARL_AI,
+    requestConfig?: AxiosRequestConfig
+  ): Promise<ChatCompletionResponse> {
+    // Construct the request object internally
+    const request: ChatCompletionRequest = {
+      model,
+      messages,
       metadata: {
-        ...request.metadata,
+        mode,
         sessionId
       }
     };
@@ -37,7 +44,7 @@ export class Chat {
     // and ultimately resolve the promise with `response.data` or reject it with an error.
     const response = await this.apiClient.post<ChatCompletionResponse>(
       '/chat/completions',
-      requestWithSession,
+      request,
       requestConfig
     );
 

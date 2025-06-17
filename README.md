@@ -38,11 +38,12 @@ npm install pearl-sdk
 import { PearlClient, CONVERSATION_MODES } from 'pearl-sdk';
 
 const client = new PearlClient('YOUR_API_KEY');
-const response = await client.chat.sendCompletion({
-  model: "pearl-ai",
-  messages: [{ role: "user", content: "Hello!" }],
-  metadata: { mode: CONVERSATION_MODES.PEARL_AI }
-}, "123");
+const response = await client.chat.sendCompletion(
+  [{ role: "user", content: "Hello!" }],  // messages
+  "user-session-123",                     // sessionId
+  "pearl-ai",                             // model (optional)
+  CONVERSATION_MODES.PEARL_AI             // mode (optional)
+);
 ```
 
 ### Python
@@ -51,14 +52,15 @@ pip install pearl-sdk
 ```
 
 ```python
-from pearl_sdk import PearlClient, ChatCompletionRequest, ChatMessage, ConversationModes
+from pearl_sdk import PearlClient, ChatMessage, ConversationModes
 
 client = PearlClient(api_key='YOUR_API_KEY')
-response = client.chat.send_completion(ChatCompletionRequest(
-    model="pearl-ai",
+response = client.chat.send_completion(
     messages=[ChatMessage(role="user", content="Hello!")],
-    metadata={"mode": ConversationModes.PEARL_AI}
-), "123")
+    session_id="user-session-123",
+    model="pearl-ai",                     # optional
+    mode=ConversationModes.PEARL_AI       # optional
+)
 ```
 
 ## 🎯 Conversation Modes

@@ -2,9 +2,9 @@
 Manages chat-related operations, structured under `client.chat`.
 """
 
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 import requests
-from pearl_sdk.types import ChatCompletionRequest, ChatCompletionResponse
+from pearl_sdk.types import ChatMessage, ChatCompletionResponse, ConversationModes
 
 
 class Chat:
@@ -21,8 +21,10 @@ class Chat:
 
     def send_completion(
         self,
-        request: ChatCompletionRequest,
+        messages: List[ChatMessage],
         session_id: str,
+        model: str = "pearl-ai",
+        mode: str = ConversationModes.PEARL_AI,
         request_config: Optional[Dict[str, Any]] = None
     ) -> ChatCompletionResponse:
         """
@@ -32,8 +34,10 @@ class Chat:
         whether for conversational AI or general text generation tasks.
         
         Args:
-            request: The chat completion request payload.
-            session_id: The session ID to associate with this request.
+            messages: Array of chat messages for the conversation.
+            session_id: Unique identifier for the chat session.
+            model: The model to use (optional, defaults to "pearl-ai").
+            mode: The conversation mode (optional, defaults to PEARL_AI).
             request_config: Optional request configuration (e.g., custom headers, timeout override).
             
         Returns:
@@ -42,14 +46,14 @@ class Chat:
         Raises:
             requests.RequestException: If the API call fails or a network issue occurs.
         """
-        # Convert dataclass to dict for JSON serialization and add session_id to metadata
+        # Construct the request object internally
         request_data = {
-            "model": request.model,
+            "model": model,
             "messages": [
                 {"role": msg.role, "content": msg.content}
-                for msg in request.messages
+                for msg in messages
             ],
-            "metadata": {**request.metadata, "sessionId": session_id}
+            "metadata": {"mode": mode, "sessionId": session_id}
         }
         
         # Merge any additional request configuration

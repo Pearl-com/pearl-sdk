@@ -11,7 +11,7 @@ To run this example:
 """
 
 import uuid
-from pearl_sdk import PearlClient, ChatCompletionRequest, ChatMessage, RetryPolicyConfig, ConversationModes
+from pearl_sdk import PearlClient, ChatMessage, RetryPolicyConfig, ConversationModes
 
 # --- IMPORTANT: Configure your API Key ---
 # Replace 'YOUR_PEARL_API_KEY' with your actual Pearl API Key.
@@ -35,28 +35,25 @@ def run_chat_completion_example():
             enabled=True,
             max_retries=50,
             retry_delay_ms=100,
-            max_retry_delay_ms=60000
-        )
+            max_retry_delay_ms=60000        )
     )
 
     try:
         print("\n--- Starting Chat Completion Example ---")
 
-        chat_request = ChatCompletionRequest(
-            model="pearl-ai",
-            messages=[
-                ChatMessage(
-                    role="user",
-                    content="Explain large language models in simple terms."  # The user's message
-                )
-            ],
-            metadata={"mode": ConversationModes.PEARL_AI}
-        )
+        messages = [
+            ChatMessage(
+                role="user",
+                content="Explain large language models in simple terms."  # The user's message
+            )
+        ]
 
         print("Sending chat completion request...")
         chat_response = client.chat.send_completion(
-            chat_request,
-            session_id
+            messages=messages,
+            session_id=session_id,
+            model="pearl-ai",  # optional, defaults to "pearl-ai"
+            mode=ConversationModes.PEARL_AI  # optional, defaults to PEARL_AI
         )
 
         print("\n--- Chat Completion API Response ---")

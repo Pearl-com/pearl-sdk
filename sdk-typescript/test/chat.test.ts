@@ -1,6 +1,6 @@
 import axios, { AxiosInstance, AxiosResponse, AxiosRequestConfig } from 'axios';
 import { Chat } from '../src/resources/chat';
-import { ChatCompletionRequest, ChatCompletionResponse } from '../src/types';
+import { ChatCompletionRequest, ChatCompletionResponse, ChatMessage } from '../src/types';
 
 const mockAxiosInstance: jest.Mocked<AxiosInstance> = {
   post: jest.fn(),
@@ -38,13 +38,10 @@ describe('Chat', () => {
 
   // --- sendCompletion Method Tests ---
   describe('sendCompletion', () => {
-    const mockRequest: ChatCompletionRequest = {
-      model: "test-model",
-      messages: [{ role: "user", content: "Test message" }],
-      metadata: { source: "test" }
-    };
-
+    const testMessages: ChatMessage[] = [{ role: "user", content: "Test message" }];
     const testSessionId = "test-session-123";
+    const testModel = "test-model";
+    const testMode = "test-mode";
 
     const mockResponseData: ChatCompletionResponse = {
       id: "chatcmpl-test",
@@ -68,14 +65,15 @@ describe('Chat', () => {
       // Mock the successful response from axios.post
       mockAxiosInstance.post.mockResolvedValueOnce({ data: mockResponseData });
 
-      const response = await chat.sendCompletion(mockRequest, testSessionId);
+      const response = await chat.sendCompletion(testMessages, testSessionId, testModel, testMode);
 
       // Expect apiClient.post to have been called once
       expect(mockAxiosInstance.post).toHaveBeenCalledTimes(1);
-      // Expect it to be called with the correct endpoint and request payload including sessionId
+      // Expect it to be called with the correct endpoint and request payload
       expect(mockAxiosInstance.post).toHaveBeenCalledWith('/chat/completions', {
-        ...mockRequest,
-        metadata: { ...mockRequest.metadata, sessionId: testSessionId }
+        model: testModel,
+        messages: testMessages,
+        metadata: { mode: testMode, sessionId: testSessionId }
       }, undefined);
 
       // Expect the method to return the data part of the Axios response
@@ -90,12 +88,13 @@ describe('Chat', () => {
 
       mockAxiosInstance.post.mockResolvedValueOnce({ data: mockResponseData });
 
-      const response = await chat.sendCompletion(mockRequest, testSessionId, mockRequestConfig);
+      const response = await chat.sendCompletion(testMessages, testSessionId, testModel, testMode, mockRequestConfig);
 
       expect(mockAxiosInstance.post).toHaveBeenCalledTimes(1);
       expect(mockAxiosInstance.post).toHaveBeenCalledWith('/chat/completions', {
-        ...mockRequest,
-        metadata: { ...mockRequest.metadata, sessionId: testSessionId }
+        model: testModel,
+        messages: testMessages,
+        metadata: { mode: testMode, sessionId: testSessionId }
       }, mockRequestConfig);
       expect(response).toEqual(mockResponseData);
     });
@@ -104,7 +103,7 @@ describe('Chat', () => {
       const mockError = new Error('Network error');
       mockAxiosInstance.post.mockRejectedValueOnce(mockError);
 
-      await expect(chat.sendCompletion(mockRequest, testSessionId)).rejects.toBe(mockError);
+      await expect(chat.sendCompletion(testMessages, testSessionId, testModel, testMode)).rejects.toBe(mockError);
     });
   });
 });

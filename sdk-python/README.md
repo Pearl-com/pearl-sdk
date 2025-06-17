@@ -50,23 +50,24 @@ client = PearlClient(
 Send messages to the Pearl API's chat completions endpoint.
 
 ```python
-from pearl_sdk import PearlClient, ChatCompletionRequest, ChatMessage, ConversationModes
+from pearl_sdk import PearlClient, ChatMessage, ConversationModes
 
 client = PearlClient(api_key='YOUR_PEARL_API_KEY')
 
 def get_chat_completion():
-    chat_request = ChatCompletionRequest(
-        model="pearl-ai",
-        messages=[
-            ChatMessage(role="user", content="What is quantum computing?"),
-            ChatMessage(role="assistant", content="Quantum computing is a new type of computing that uses quantum-mechanical phenomena."),
-            ChatMessage(role="user", content="Can you simplify that for a 5-year-old?")
-        ],
-        metadata={"mode": ConversationModes.PEARL_AI}
-    )
+    messages = [
+        ChatMessage(role="user", content="What is quantum computing?"),
+        ChatMessage(role="assistant", content="Quantum computing is a new type of computing that uses quantum-mechanical phenomena."),
+        ChatMessage(role="user", content="Can you simplify that for a 5-year-old?")
+    ]
 
     try:
-        response = client.chat.send_completion(chat_request, "user-session-123")
+        response = client.chat.send_completion(
+            messages=messages,                      # messages list
+            session_id="user-session-123",          # session ID
+            model="pearl-ai",                       # model (optional)
+            mode=ConversationModes.PEARL_AI         # mode (optional)
+        )
         print("Assistant's response:", response.choices[0].message.content)
     except Exception as error:
         print("Error getting chat completion:", error)
@@ -87,10 +88,11 @@ from pearl_sdk import ConversationModes
 # ConversationModes.PEARL_AI_EXPERT - AI with expert transition mode
 # ConversationModes.EXPERT - Direct expert connection mode
 
-chat_request = ChatCompletionRequest(
-    model="pearl-ai",
+response = client.chat.send_completion(
     messages=[ChatMessage(role="user", content="Hello!")],
-    metadata={"mode": ConversationModes.PEARL_AI_EXPERT}
+    session_id="user-session-123",
+    model="pearl-ai",
+    mode=ConversationModes.PEARL_AI_EXPERT
 )
 ```
 

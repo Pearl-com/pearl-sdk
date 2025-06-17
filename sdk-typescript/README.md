@@ -45,23 +45,24 @@ const client = new PearlClient(
 Send messages to the Pearl API's chat completions endpoint.
 
 ```ts
-import { PearlClient, ChatCompletionRequest, CONVERSATION_MODES } from 'pearl-sdk';
+import { PearlClient, CONVERSATION_MODES } from 'pearl-sdk';
 
 const client = new PearlClient('YOUR_PEARL_API_KEY');
 
 async function getChatCompletion() {
-  const chatRequest: ChatCompletionRequest = {
-    model: "pearl-ai",
-    messages: [
-      { role: "user", content: "What is quantum computing?" },
-      { role: "assistant", content: "Quantum computing is a new type of computing that uses quantum-mechanical phenomena." },
-      { role: "user", content: "Can you simplify that for a 5-year-old?" }
-    ],
-    metadata: { mode: CONVERSATION_MODES.PEARL_AI }
-  };
+  const messages = [
+    { role: "user", content: "What is quantum computing?" },
+    { role: "assistant", content: "Quantum computing is a new type of computing that uses quantum-mechanical phenomena." },
+    { role: "user", content: "Can you simplify that for a 5-year-old?" }
+  ];
 
   try {
-    const response = await client.chat.sendCompletion(chatRequest, "user-session-123");
+    const response = await client.chat.sendCompletion(
+      messages,                           // messages array
+      "user-session-123",                 // sessionId
+      "pearl-ai",                         // model (optional)
+      CONVERSATION_MODES.PEARL_AI         // mode (optional)
+    );
     console.log("Assistant's response:", response.choices[0].message.content);
   } catch (error) {
     console.error("Error getting chat completion:", error);
@@ -84,11 +85,12 @@ import { CONVERSATION_MODES } from 'pearl-sdk';
 // CONVERSATION_MODES.PEARL_AI_EXPERT - AI with expert transition mode
 // CONVERSATION_MODES.EXPERT - Direct expert connection mode
 
-const chatRequest: ChatCompletionRequest = {
-  model: "pearl-ai",
-  messages: [{ role: "user", content: "Hello!" }],
-  metadata: { mode: CONVERSATION_MODES.PEARL_AI_EXPERT }
-};
+const response = await client.chat.sendCompletion(
+  [{ role: "user", content: "Hello!" }],
+  "user-session-123",
+  "pearl-ai",
+  CONVERSATION_MODES.PEARL_AI_EXPERT
+);
 ```
 
 For more information about conversation modes, see the [Pearl API documentation](https://www.pearl.com/api/docs/conversation-modes).

@@ -5,7 +5,7 @@ from unittest.mock import Mock, patch
 import requests
 from pearl_sdk.resources.chat import Chat
 from pearl_sdk.types import (
-    ChatCompletionRequest, ChatMessage, ChatCompletionResponse,
+    ChatMessage, ChatCompletionResponse,
     ChatCompletionChoice, ChatCompletionResponseMessage
 )
 
@@ -25,12 +25,10 @@ class TestChat:
     def test_send_completion_success(self):
         """Test successful chat completion request."""
         # Arrange
-        test_request = ChatCompletionRequest(
-            model="test-model",
-            messages=[ChatMessage(role="user", content="Test message")],
-            metadata={"source": "test"}
-        )
+        test_messages = [ChatMessage(role="user", content="Test message")]
         test_session_id = "test-session-123"
+        test_model = "test-model"
+        test_mode = "test-mode"
         
         mock_response_data = {
             "id": "chatcmpl-test",
@@ -64,7 +62,7 @@ class TestChat:
         self.mock_session.post.return_value = mock_response
 
         # Act
-        result = self.chat.send_completion(test_request, test_session_id)
+        result = self.chat.send_completion(test_messages, test_session_id, test_model, test_mode)
 
         # Assert
         self.mock_session.post.assert_called_once_with(
@@ -72,7 +70,7 @@ class TestChat:
             json={
                 "model": "test-model",
                 "messages": [{"role": "user", "content": "Test message"}],
-                "metadata": {"source": "test", "sessionId": test_session_id}
+                "metadata": {"mode": "test-mode", "sessionId": "test-session-123"}
             }
         )
         
@@ -84,12 +82,9 @@ class TestChat:
     def test_send_completion_with_request_config(self):
         """Test chat completion request with additional request configuration."""
         # Arrange
-        test_request = ChatCompletionRequest(
-            model="test-model",
-            messages=[ChatMessage(role="user", content="Test message")],
-            metadata={}
-        )
+        test_messages = [ChatMessage(role="user", content="Test message")]
         test_session_id = "test-session-123"
+        test_model = "test-model"
         request_config = {"headers": {"X-Custom-Header": "test-value"}, "timeout": 30}
         
         mock_response_data = {
@@ -109,7 +104,7 @@ class TestChat:
         self.mock_session.post.return_value = mock_response
 
         # Act
-        result = self.chat.send_completion(test_request, test_session_id, request_config)
+        result = self.chat.send_completion(test_messages, test_session_id, test_model, mode="PEARL_AI", request_config=request_config)
 
         # Assert
         self.mock_session.post.assert_called_once_with(
@@ -117,7 +112,7 @@ class TestChat:
             json={
                 "model": "test-model",
                 "messages": [{"role": "user", "content": "Test message"}],
-                "metadata": {"sessionId": test_session_id}
+                "metadata": {"mode": "PEARL_AI", "sessionId": "test-session-123"}
             },
             headers={"X-Custom-Header": "test-value"},
             timeout=30
@@ -126,12 +121,9 @@ class TestChat:
     def test_send_completion_http_error(self):
         """Test that HTTP errors are properly raised."""
         # Arrange
-        test_request = ChatCompletionRequest(
-            model="test-model",
-            messages=[ChatMessage(role="user", content="Test message")],
-            metadata={}
-        )
+        test_messages = [ChatMessage(role="user", content="Test message")]
         test_session_id = "test-session-123"
+        test_model = "test-model"
         
         mock_response = Mock()
         mock_response.raise_for_status.side_effect = requests.RequestException("API Error")
@@ -139,7 +131,7 @@ class TestChat:
 
         # Act & Assert
         with pytest.raises(requests.RequestException, match="API Error"):
-            self.chat.send_completion(test_request, test_session_id)
+            self.chat.send_completion(test_messages, test_session_id, test_model)
 
     def test_parse_chat_completion_response_with_expert_info(self):
         """Test parsing response with expert information."""
