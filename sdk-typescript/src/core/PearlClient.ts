@@ -5,6 +5,18 @@ import { ProblemDetailsResponse, RetryPolicyConfig } from '../types';
 import { RetryPolicy } from './RetryPolicy';
 
 /**
+ * Configuration options for initializing the PearlClient.
+ */
+export interface PearlClientOptions {
+  /** Base URL for the Pearl API (optional, defaults to https://api.pearl.com/api/v1/). */
+  baseUrl?: string;
+  /** Request timeout in milliseconds (optional, defaults to 30000). */
+  timeout?: number;
+  /** Retry policy configuration (optional). */
+  retryPolicy?: RetryPolicyConfig;
+}
+
+/**
  * Main client for interacting with the Pearl API.
  */
 export class PearlClient {
@@ -25,20 +37,16 @@ export class PearlClient {
   /**
    * Initializes a new instance of the PearlClient.
    * @param apiKey Your Pearl API key.
-   * @param baseUrl Base URL for the Pearl API (optional, defaults to https://api.pearl.com/api/v1/).
-   * @param timeout Request timeout in milliseconds (optional, defaults to 30000).
-   * @param retryPolicy Retry policy configuration (optional).
-   * @throws Error if `apiKey` is missing or `timeout` is invalid.
+   * @param options Configuration options for the client (optional).
+   * @throws Error if `apiKey` is missing or configuration is invalid.
    */
-  constructor(
-    apiKey: string,
-    baseUrl?: string,
-    timeout?: number,
-    retryPolicy?: RetryPolicyConfig
-  ) {
+  constructor(apiKey: string, options?: PearlClientOptions) {
     if (!apiKey) {
       throw new Error("PearlClient must include an apiKey.");
     }
+
+    const { baseUrl, timeout, retryPolicy } = options || {};
+
     if (timeout !== undefined && (typeof timeout !== 'number' || timeout <= 0)) {
       throw new Error("Timeout must be a positive number if provided.");
     }

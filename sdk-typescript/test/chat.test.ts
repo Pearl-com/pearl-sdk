@@ -48,7 +48,6 @@ describe('Chat', () => {
       choices: [{
         index: 0,
         message: {
-          score: null,
           isHuman: false,
           expertInfo: null,
           role: "assistant",

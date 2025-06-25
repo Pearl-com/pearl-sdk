@@ -74,11 +74,11 @@ describe('PearlClient', () => {
 
   test('should throw an error if timeout is not a positive number', () => {
     // @ts-ignore - Intentionally test invalid config
-    expect(() => new PearlClient(MOCK_API_KEY, undefined, 0)).toThrow("Timeout must be a positive number if provided.");
+    expect(() => new PearlClient(MOCK_API_KEY, { timeout: 0 })).toThrow("Timeout must be a positive number if provided.");
     // @ts-ignore - Intentionally test invalid config
-    expect(() => new PearlClient(MOCK_API_KEY, undefined, -100)).toThrow("Timeout must be a positive number if provided.");
+    expect(() => new PearlClient(MOCK_API_KEY, { timeout: -100 })).toThrow("Timeout must be a positive number if provided.");
     // @ts-ignore - Intentionally test invalid config
-    expect(() => new PearlClient(MOCK_API_KEY, undefined, 'abc' as any)).toThrow("Timeout must be a positive number if provided.");
+    expect(() => new PearlClient(MOCK_API_KEY, { timeout: 'abc' as any })).toThrow("Timeout must be a positive number if provided.");
   });
 
   // --- Constructor Initialization Tests ---
@@ -103,12 +103,11 @@ describe('PearlClient', () => {
   });
 
   test('should initialize with custom baseUrl and timeout', () => {
-    const client = new PearlClient(
-      MOCK_API_KEY,
-      MOCK_BASE_URL,
-      5000,
-      { enabled: false, maxRetries: 5 }
-    );
+    const client = new PearlClient(MOCK_API_KEY, {
+      baseUrl: MOCK_BASE_URL,
+      timeout: 5000,
+      retryPolicy: { enabled: false, maxRetries: 5 }
+    });
 
     expect(client['apiKey']).toBe(MOCK_API_KEY);
     expect(client['baseUrl']).toBe(MOCK_BASE_URL);

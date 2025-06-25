@@ -68,7 +68,6 @@ export interface ExpertInfo {
  * Represents a message from the assistant in a chat completion response.
  */
 export interface ChatCompletionResponseMessage {
-    score: string | null;
     isHuman: boolean;
     expertInfo: ExpertInfo | null;
     role: 'assistant';

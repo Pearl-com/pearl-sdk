@@ -1,4 +1,4 @@
-export { PearlClient } from './core/PearlClient';
+export { PearlClient, PearlClientOptions } from './core/PearlClient';
 export { CONVERSATION_MODES, DEFAULT_MODEL } from './types';
 
 export type {

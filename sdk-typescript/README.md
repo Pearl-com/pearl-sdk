@@ -22,23 +22,24 @@ npm install pearl-sdk
 
 ## 🚀 Usage
 ### Initializing the Client
-The PearlClient is your main entry point for interacting with the Pearl API. Initialize it with your apiKey. You can also configure a custom baseUrl, timeout, and retryPolicy.
+The PearlClient is your main entry point for interacting with the Pearl API. You can initialize it with just your API key, or specify only the options you need.
 
 ```ts
 import { PearlClient } from 'pearl-sdk';
 
-const client = new PearlClient(
-  'YOUR_PEARL_API_KEY',
-  // Optional configurations:
-  // 'https://api.pearl.com/api/v1/', // baseUrl - defaults to 'https://api.pearl.com/api/v1/'
-  // 30000, // timeout in milliseconds, defaults to 30000 (30 seconds)
-  // { // retryPolicy
-  //   enabled: true,         // Enable/disable retries (defaults to true)
-  //   maxRetries: 30,        // Max retry attempts for specific errors (defaults to 30)
-  //   retryDelayMs: 100,     // Initial delay for exponential backoff (defaults to 100ms)
-  //   maxRetryDelayMs: 30000 // Maximum delay for exponential backoff (defaults to 30 seconds)
-  // }
-);
+// Simple initialization with just the API key
+const client = new PearlClient('YOUR_PEARL_API_KEY');
+
+// Or with custom options (specify only what you need)
+const client = new PearlClient('YOUR_PEARL_API_KEY', {
+  timeout: 60000,        // 60 seconds timeout
+  retryPolicy: {
+    enabled: true,
+    maxRetries: 50,
+    retryDelayMs: 100,
+    maxRetryDelayMs: 60000
+  }
+});
 ```
 
 ### Chat Completions

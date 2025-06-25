@@ -29,7 +29,6 @@ def run_chat_completion_example():
     # Initialize client with comprehensive configuration for demonstration
     client = PearlClient(
         api_key=API_KEY,
-        # base_url='https://api.pearl.com/api/v1',  # Uncomment and change if using a custom base URL
         timeout=60,  # 60 seconds timeout
         retry_policy=RetryPolicyConfig(
             enabled=True,

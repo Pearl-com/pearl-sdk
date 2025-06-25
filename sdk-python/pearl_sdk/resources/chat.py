@@ -98,7 +98,6 @@ class Chat:
                 )
             
             message = ChatCompletionResponseMessage(
-                score=message_data.get('score'),
                 is_human=message_data.get('isHuman', False) or message_data.get('is_human', False),
                 expert_info=expert_info,
                 role=message_data.get('role', 'assistant'),

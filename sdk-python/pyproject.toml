@@ -10,7 +10,7 @@ readme = "README.md"
 requires-python = ">=3.7"
 license = {text = "MIT"}
 authors = [
-    {name = "Pearl.com", email = "support@pearl.com"}
+    {name = "Pearl.com", email = "api@pearl.com"}
 ]
 keywords = ["pearl", "api", "sdk", "python", "ai", "chat", "webhook"]
 classifiers = [

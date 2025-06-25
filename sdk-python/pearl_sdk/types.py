@@ -60,7 +60,6 @@ class ExpertInfo:
 @dataclass
 class ChatCompletionResponseMessage:
     """Represents a message from the assistant in a chat completion response."""
-    score: Optional[str]
     is_human: bool
     expert_info: Optional[ExpertInfo]
     role: str  # 'assistant'

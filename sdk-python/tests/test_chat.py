@@ -35,7 +35,6 @@ class TestChat:
             "choices": [{
                 "index": 0,
                 "message": {
-                    "score": None,
                     "isHuman": False,
                     "expertInfo": None,
                     "role": "assistant",
@@ -141,7 +140,6 @@ class TestChat:
             "choices": [{
                 "index": 0,
                 "message": {
-                    "score": "0.95",
                     "isHuman": True,
                     "expertInfo": {
                         "name": "Dr. Smith",
@@ -178,7 +176,6 @@ class TestChat:
         assert choice.finish_reason == "stop"
         
         message = choice.message
-        assert message.score == "0.95"
         assert message.is_human is True
         assert message.content == "Expert response."
         
