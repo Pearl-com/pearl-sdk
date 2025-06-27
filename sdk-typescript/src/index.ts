@@ -1,0 +1,28 @@
+export { PearlClient, PearlClientOptions } from './core/PearlClient';
+export { CONVERSATION_MODES, DEFAULT_MODEL } from './types';
+
+export type {
+    // Configuration types
+    RetryPolicyConfig,
+
+    // Base request types
+    BaseRequest,
+      // Chat-related types
+    ChatMessage,
+    ChatCompletionRequest,
+    ChatCompletionResponseMessage,
+    ChatCompletionChoice,
+    ChatCompletionResponse,
+    ConversationMode,
+
+    // Shared types
+    ExpertInfo, // Used in both chat responses and webhooks
+
+    // Error response types
+    ProblemDetails,
+    ProblemDetailsResponse,
+
+    // Webhook-specific types
+    WebhookPayload,
+    WebhookEndpointRequest
+} from './types';

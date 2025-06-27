@@ -1,0 +1,38 @@
+{
+  "name": "pearl-sdk",
+  "version": "1.0.0",
+  "description": "SDK for the Pearl API",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "rimraf dist && tsc",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "prepublishOnly": "npm run build",
+    "dev": "tsc --watch"
+  },
+  "keywords": [
+    "pearl",
+    "api",
+    "sdk",
+    "typescript",
+    "node"
+  ],
+  "license": "MIT",
+  "devDependencies": {
+    "@types/jest": "^29.5.14",
+    "@types/uuid": "^10.0.0",
+    "jest": "^30.0.0",
+    "rimraf": "^6.0.1",
+    "ts-jest": "^29.4.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "axios": "^1.9.0",
+    "uuid": "^11.1.0"
+  }
+}
