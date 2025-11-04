@@ -27,16 +27,21 @@ export class Chat {
     sessionId: string,
     mode: string = CONVERSATION_MODES.PEARL_AI,
     model: string = DEFAULT_MODEL,
-    requestConfig?: AxiosRequestConfig
+    requestConfig?: AxiosRequestConfig,
+    extraMetadata?: Record<string, string>
   ): Promise<ChatCompletionResponse> {
     // Construct the request object internally
+    // Merge any extra metadata while ensuring explicit 'mode' and 'sessionId' take precedence.
+    const metadata: Record<string, string> = {
+      ...(extraMetadata || {}),
+      mode,
+      sessionId
+    };
+
     const request: ChatCompletionRequest = {
       model,
       messages,
-      metadata: {
-        mode,
-        sessionId
-      }
+      metadata
     };
 
     // The Axios interceptors in PearlClient handle error logging, retries,

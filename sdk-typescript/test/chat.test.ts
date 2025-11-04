@@ -104,5 +104,32 @@ describe('Chat', () => {
 
       await expect(chat.sendCompletion(testMessages, testSessionId, testMode, testModel)).rejects.toBe(mockError);
     });
+
+    test('should merge extra metadata and preserve mode/sessionId precedence', async () => {
+      mockAxiosInstance.post.mockResolvedValueOnce({ data: mockResponseData });
+
+      const extra = { custom: 'value', mode: 'override-mode', sessionId: 'override-session' };
+      await chat.sendCompletion(testMessages, testSessionId, testMode, testModel, undefined, extra);
+
+      expect(mockAxiosInstance.post).toHaveBeenCalledWith('/chat/completions', {
+        model: testModel,
+        messages: testMessages,
+        metadata: { custom: 'value', mode: testMode, sessionId: testSessionId }
+      }, undefined);
+    });
+
+    test('should send both requestConfig and extra metadata', async () => {
+      mockAxiosInstance.post.mockResolvedValueOnce({ data: mockResponseData });
+      const mockRequestConfig: AxiosRequestConfig = { timeout: 500 };
+      const extra = { traceId: 'abc123' };
+
+      await chat.sendCompletion(testMessages, testSessionId, testMode, testModel, mockRequestConfig, extra);
+
+      expect(mockAxiosInstance.post).toHaveBeenCalledWith('/chat/completions', {
+        model: testModel,
+        messages: testMessages,
+        metadata: { traceId: 'abc123', mode: testMode, sessionId: testSessionId }
+      }, mockRequestConfig);
+    });
   });
 });
