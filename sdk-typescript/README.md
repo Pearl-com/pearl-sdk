@@ -1,4 +1,4 @@
-# Pearl SDK for TypeScript
+# Pearl API Client SDK for TypeScript
 
 A robust and easy-to-use SDK for interacting with the Pearl API, providing streamlined access to AI chat completions, webhook management, and secure signature verification utilities.
 
@@ -14,10 +14,10 @@ A robust and easy-to-use SDK for interacting with the Pearl API, providing strea
 **Configurable Client**: Customize API key, base URL, timeout, and retry policy.
 
 ## 📦 Installation
-To install the Pearl SDK, use npm or yarn:
+To install the Pearl API Client SDK, use npm or yarn:
 
 ```bash
-npm install pearl-sdk
+npm install @pearl-api/pearl-api-client-sdk
 ```
 
 ## 🚀 Usage
@@ -25,7 +25,7 @@ npm install pearl-sdk
 The PearlClient is your main entry point for interacting with the Pearl API. You can initialize it with just your API key, or specify only the options you need.
 
 ```ts
-import { PearlClient } from 'pearl-sdk';
+import { PearlClient } from '@pearl-api/pearl-api-client-sdk';
 
 // Simple initialization with just the API key
 const client = new PearlClient('YOUR_PEARL_API_KEY');
@@ -46,7 +46,7 @@ const client = new PearlClient('YOUR_PEARL_API_KEY', {
 Send messages to the Pearl API's chat completions endpoint.
 
 ```ts
-import { PearlClient, CONVERSATION_MODES } from 'pearl-sdk';
+import { PearlClient, CONVERSATION_MODES } from '@pearl-api/pearl-api-client-sdk';
 
 const client = new PearlClient('YOUR_PEARL_API_KEY');
 
@@ -77,7 +77,7 @@ getChatCompletion();
 Pearl supports different conversation modes that control how the AI responds. The SDK provides constants for these modes:
 
 ```ts
-import { CONVERSATION_MODES } from 'pearl-sdk';
+import { CONVERSATION_MODES } from '@pearl-api/pearl-api-client-sdk';
 
 // Available conversation modes:
 // CONVERSATION_MODES.PEARL_AI - AI-only response mode
@@ -98,7 +98,7 @@ Webhook Signature Verification
 Verify incoming webhook requests from Pearl to ensure their authenticity. You'll need the raw request body and the signature from the X-Pearl-API-Signature header.
 
 ```ts
-import { PearlClient } from 'pearl-sdk';
+import { PearlClient } from '@pearl-api/pearl-api-client-sdk';
 
 const client = new PearlClient('YOUR_PEARL_API_KEY'); // The API key acts as the webhook secret
 
@@ -129,7 +129,7 @@ Webhook Endpoint Management
 Register or update your webhook endpoint with Pearl.
 
 ```ts
-import { PearlClient, WebhookEndpointRequest } from 'pearl-sdk';
+import { PearlClient, WebhookEndpointRequest } from '@pearl-api/pearl-api-client-sdk';
 
 const client = new PearlClient('YOUR_PEARL_API_KEY');
 
