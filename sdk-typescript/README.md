@@ -61,7 +61,7 @@ async function getChatCompletion() {
     const response = await client.chat.sendCompletion(
       messages,                           // messages array
       "user-session-123",                 // sessionId
-      CONVERSATION_MODES.PEARL_AI         // mode (optional)
+      CONVERSATION_MODES.PEARL_AI_EXPERT  // mode (optional)
     );
     console.log("Assistant's response:", response.choices[0].message.content);
   } catch (error) {
@@ -80,7 +80,6 @@ Pearl supports different conversation modes that control how the AI responds. Th
 import { CONVERSATION_MODES } from '@pearl-api/pearl-api-client-sdk';
 
 // Available conversation modes:
-// CONVERSATION_MODES.PEARL_AI - AI-only response mode
 // CONVERSATION_MODES.PEARL_AI_VERIFIED - AI with expert verification mode
 // CONVERSATION_MODES.PEARL_AI_EXPERT - AI with expert transition mode
 // CONVERSATION_MODES.EXPERT - Direct expert connection mode
@@ -88,7 +87,7 @@ import { CONVERSATION_MODES } from '@pearl-api/pearl-api-client-sdk';
 const response = await client.chat.sendCompletion(
   [{ role: "user", content: "Hello!" }],
   "user-session-123",
-  CONVERSATION_MODES.PEARL_AI_EXPERT
+  CONVERSATION_MODES.PEARL_AI_VERIFIED
 );
 ```
 

@@ -65,7 +65,7 @@ def get_chat_completion():
         response = client.chat.send_completion(
             messages=messages,                      # messages list
             session_id="user-session-123",          # session ID
-            mode=ConversationModes.PEARL_AI         # mode (optional)
+            mode=ConversationModes.PEARL_AI_EXPERT  # mode (optional)
         )
         print("Assistant's response:", response.choices[0].message.content)
     except Exception as error:
@@ -82,7 +82,6 @@ Pearl supports different conversation modes that control how the AI responds. Th
 from pearl_sdk import ConversationModes
 
 # Available conversation modes:
-# ConversationModes.PEARL_AI - AI-only response mode
 # ConversationModes.PEARL_AI_VERIFIED - AI with expert verification mode
 # ConversationModes.PEARL_AI_EXPERT - AI with expert transition mode
 # ConversationModes.EXPERT - Direct expert connection mode
@@ -90,7 +89,7 @@ from pearl_sdk import ConversationModes
 response = client.chat.send_completion(
     messages=[ChatMessage(role="user", content="Hello!")],
     session_id="user-session-123",
-    mode=ConversationModes.PEARL_AI_EXPERT
+    mode=ConversationModes.PEARL_AI_VERIFIED
 )
 ```
 
