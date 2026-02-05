@@ -21,7 +21,7 @@ Official SDKs for the Pearl API, providing robust and easy-to-use libraries for 
 Both SDKs provide identical functionality:
 
 - **Chat Completions**: Interact with Pearl's AI models for conversational and text generation tasks
-- **Conversation Modes**: Control AI behavior with different modes (pearl-ai, pearl-ai-verified, pearl-ai-expert)
+- **Conversation Modes**: Control AI behavior with different modes (pearl-ai-verified, pearl-ai-expert)
 - **Webhook Management**: Programmatically register and update webhook endpoints
 - **Webhook Signature Verification**: Securely verify the authenticity and integrity of incoming webhook payloads
 - **Built-in Retry Logic**: Automatic retries with exponential backoff and jitter for enhanced reliability
@@ -41,7 +41,7 @@ const client = new PearlClient('YOUR_API_KEY');
 const response = await client.chat.sendCompletion(
   [{ role: "user", content: "Hello!" }],  // messages
   "user-session-123",                     // sessionId
-  CONVERSATION_MODES.PEARL_AI             // mode (optional)
+  CONVERSATION_MODES.PEARL_AI_EXPERT      // mode (optional)
 );
 ```
 
@@ -57,7 +57,7 @@ client = PearlClient(api_key='YOUR_API_KEY')
 response = client.chat.send_completion(
     messages=[ChatMessage(role="user", content="Hello!")],
     session_id="user-session-123",
-    mode=ConversationModes.PEARL_AI       # optional
+    mode=ConversationModes.PEARL_AI_EXPERT       # optional
 )
 ```
 
@@ -67,7 +67,6 @@ Pearl supports different conversation modes that control how the AI responds. Us
 
 ### Available Modes
 
-- **`PEARL_AI`** / **`pearl-ai`**: AI-only response mode
 - **`PEARL_AI_VERIFIED`** / **`pearl-ai-verified`**: AI with expert verification mode  
 - **`PEARL_AI_EXPERT`** / **`pearl-ai-expert`**: AI with expert transition mode
 - **`EXPERT`** / **`expert`**: Direct expert connection mode
