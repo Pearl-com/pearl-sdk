@@ -97,6 +97,14 @@ For more information about conversation modes, see the [Pearl API documentation]
 
 Upload files (images or documents) with the Files resource and attach them to chat messages by referencing the returned file id.
 
+> **Important:** Files cannot be uploaded on the very first message of a chat session. The session must already exist on the server before a file can be associated with it, so you must send at least one chat completion with the same `sessionId` before calling `client.files.create`.
+
+The recommended flow is:
+
+1. Send an initial chat completion to create the session.
+2. Upload the file with the same `sessionId`.
+3. Send a follow-up chat completion that references the uploaded file id via `attachments`.
+
 ```ts
 import { readFileSync } from 'fs';
 import { v4 as uuidv4 } from 'uuid';
@@ -110,6 +118,16 @@ import {
 const client = new PearlClient('YOUR_PEARL_API_KEY');
 const sessionId = uuidv4();
 
+// 1. Initialize the session with any first message.
+const messages: ChatMessage[] = [{ role: 'user', content: 'Hello' }];
+const first = await client.chat.sendCompletion(
+    messages,
+    sessionId,
+    CONVERSATION_MODES.PEARL_AI_EXPERT
+);
+messages.push({ role: 'assistant', content: first.choices[0].message.content ?? '' });
+
+// 2. Upload the file against the now-initialized session.
 const uploaded = await client.files.create({
     file: readFileSync('image.png'),
     sessionId,
@@ -117,14 +135,12 @@ const uploaded = await client.files.create({
     filename: 'image.png'
 });
 
-const messages: ChatMessage[] = [
-    {
-        role: 'user',
-        content: "What's on the image?",
-        attachments: [uploaded.id]
-    }
-];
-
+// 3. Send a follow-up message that references the uploaded file id.
+messages.push({
+    role: 'user',
+    content: "What's on the image?",
+    attachments: [uploaded.id]
+});
 const response = await client.chat.sendCompletion(
     messages,
     sessionId,
