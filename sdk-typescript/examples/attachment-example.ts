@@ -49,6 +49,7 @@ async function runAttachmentExample() {
             sessionId,
             CONVERSATION_MODES.PEARL_AI_EXPERT
         );
+        console.log("Assistant's message:", firstResponse.choices[0].message.content);
         messages.push({
             role: 'assistant',
             content: firstResponse.choices[0].message.content ?? ''

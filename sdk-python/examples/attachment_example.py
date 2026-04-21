@@ -50,6 +50,9 @@ def run_attachment_example():
             session_id=session_id,
             mode=ConversationModes.PEARL_AI_EXPERT,
         )
+
+        print("Assistant's message:", first_response.choices[0].message.content)
+
         messages.append(ChatMessage(
             role="assistant",
             content=first_response.choices[0].message.content,
