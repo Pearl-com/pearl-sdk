@@ -9,30 +9,36 @@ from .client import PearlClient
 from .types import (
     # Configuration types
     RetryPolicyConfig,
-    
+
     # Conversation mode constants
     ConversationModes,
-    
+
+    # File purpose constants
+    FilePurposes,
+
     # Default values
     DEFAULT_MODEL,
-    
+
     # Base request types
     BaseRequest,
-    
+
     # Chat-related types
     ChatMessage,
     ChatCompletionRequest,
     ChatCompletionResponseMessage,
     ChatCompletionChoice,
     ChatCompletionResponse,
-    
+
+    # File-related types
+    FileObject,
+
     # Shared types
     ExpertInfo,  # Used in both chat responses and webhooks
-    
+
     # Error response types
     ProblemDetails,
     ProblemDetailsResponse,
-    
+
     # Webhook-specific types
     WebhookPayload,
     WebhookEndpointRequest
@@ -46,6 +52,7 @@ __all__ = [
     'PearlClient',
     'RetryPolicyConfig',
     'ConversationModes',
+    'FilePurposes',
     'DEFAULT_MODEL',
     'BaseRequest',
     'ChatMessage',
@@ -53,6 +60,7 @@ __all__ = [
     'ChatCompletionResponseMessage',
     'ChatCompletionChoice',
     'ChatCompletionResponse',
+    'FileObject',
     'ExpertInfo',
     'ProblemDetails',
     'ProblemDetailsResponse',

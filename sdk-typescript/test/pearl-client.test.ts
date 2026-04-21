@@ -1,6 +1,7 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosError, AxiosResponse, InternalAxiosRequestConfig, AxiosRequestHeaders } from 'axios';
 import { PearlClient } from '../src/index';
 import { Chat } from '../src/resources/chat';
+import { Files } from '../src/resources/files';
 import { Webhooks } from '../src/resources/webhooks';
 import { RetryPolicy } from '../src/core/RetryPolicy';
 import { ProblemDetailsResponse } from '../src/types';
@@ -98,6 +99,7 @@ describe('PearlClient', () => {
       timeout: 30000,
     }));
     expect(client.chat).toBeInstanceOf(Chat);
+    expect(client.files).toBeInstanceOf(Files);
     expect(client.webhooks).toBeInstanceOf(Webhooks);
     expect(MockedRetryPolicy).toHaveBeenCalledWith(undefined);
   });

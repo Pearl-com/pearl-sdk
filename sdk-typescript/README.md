@@ -93,6 +93,48 @@ const response = await client.chat.sendCompletion(
 
 For more information about conversation modes, see the [Pearl API documentation](https://www.pearl.com/api/docs/conversation-modes).
 
+### Attachments
+
+Upload files (images or documents) with the Files resource and attach them to chat messages by referencing the returned file id.
+
+```ts
+import { readFileSync } from 'fs';
+import { v4 as uuidv4 } from 'uuid';
+import {
+    PearlClient,
+    CONVERSATION_MODES,
+    FILE_PURPOSES,
+    ChatMessage
+} from '@pearl-api/pearl-api-client-sdk';
+
+const client = new PearlClient('YOUR_PEARL_API_KEY');
+const sessionId = uuidv4();
+
+const uploaded = await client.files.create({
+    file: readFileSync('image.png'),
+    sessionId,
+    purpose: FILE_PURPOSES.ATTACHMENT, // optional, defaults to "attachment"
+    filename: 'image.png'
+});
+
+const messages: ChatMessage[] = [
+    {
+        role: 'user',
+        content: "What's on the image?",
+        attachments: [uploaded.id]
+    }
+];
+
+const response = await client.chat.sendCompletion(
+    messages,
+    sessionId,
+    CONVERSATION_MODES.PEARL_AI_EXPERT
+);
+console.log(response.choices[0].message.content);
+```
+
+`client.files.create` accepts a `Buffer`, `Uint8Array`, `ArrayBuffer`, or `Blob`.
+
 Webhook Signature Verification
 Verify incoming webhook requests from Pearl to ensure their authenticity. You'll need the raw request body and the signature from the X-Pearl-API-Signature header.
 

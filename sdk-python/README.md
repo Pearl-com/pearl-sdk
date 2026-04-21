@@ -95,6 +95,40 @@ response = client.chat.send_completion(
 
 For more information about conversation modes, see the [Pearl API documentation](https://www.pearl.com/api/docs/conversation-modes).
 
+### Attachments
+
+Upload files (images or documents) with the Files resource and attach them to chat messages by referencing the returned file id.
+
+```python
+import uuid
+from pearl_sdk import PearlClient, ChatMessage, ConversationModes, FilePurposes
+
+client = PearlClient(api_key='YOUR_PEARL_API_KEY')
+session_id = str(uuid.uuid4())
+
+with open('image.png', 'rb') as image_file:
+    uploaded = client.files.create(
+        file=image_file,
+        session_id=session_id,
+        purpose=FilePurposes.ATTACHMENT,  # optional, defaults to "attachment"
+    )
+
+response = client.chat.send_completion(
+    messages=[
+        ChatMessage(
+            role="user",
+            content="What's on the image?",
+            attachments=[uploaded.id],
+        )
+    ],
+    session_id=session_id,
+    mode=ConversationModes.PEARL_AI_EXPERT,
+)
+print(response.choices[0].message.content)
+```
+
+`client.files.create` also accepts a file path or an `(filename, content[, content_type])` tuple.
+
 ### Webhook Signature Verification
 
 Verify incoming webhook requests from Pearl to ensure their authenticity. You'll need the raw request body and the signature from the `X-Pearl-API-Signature` header.

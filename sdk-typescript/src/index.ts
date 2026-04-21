@@ -1,5 +1,6 @@
 export { PearlClient, PearlClientOptions } from './core/PearlClient';
-export { CONVERSATION_MODES, DEFAULT_MODEL } from './types';
+export { CONVERSATION_MODES, DEFAULT_MODEL, FILE_PURPOSES } from './types';
+export { FileCreateParams, FileInput } from './resources/files';
 
 export type {
     // Configuration types
@@ -14,6 +15,10 @@ export type {
     ChatCompletionChoice,
     ChatCompletionResponse,
     ConversationMode,
+
+    // File-related types
+    FileObject,
+    FilePurpose,
 
     // Shared types
     ExpertInfo, // Used in both chat responses and webhooks

@@ -23,6 +23,19 @@ export const DEFAULT_MODEL = 'pearl-ai' as const;
 export type ConversationMode = typeof CONVERSATION_MODES[keyof typeof CONVERSATION_MODES];
 
 /**
+ * File purpose constants for the Pearl files endpoint.
+ */
+export const FILE_PURPOSES = {
+    /** Files attached to chat conversations for the Assistant or Expert. */
+    ATTACHMENT: 'attachment'
+} as const;
+
+/**
+ * Type for file purpose values.
+ */
+export type FilePurpose = typeof FILE_PURPOSES[keyof typeof FILE_PURPOSES];
+
+/**
  * Configuration options for the retry policy.
  */
 export interface RetryPolicyConfig {
@@ -46,6 +59,24 @@ export interface BaseRequest {
 export interface ChatMessage {
     role: 'user' | 'system' | 'assistant';
     content: string;
+    /** Optional list of uploaded file IDs to attach to this message. */
+    attachments?: string[];
+}
+
+/**
+ * Represents an uploaded file returned by the /files endpoint.
+ */
+export interface FileObject {
+    /** Unique identifier of the file. */
+    id: string;
+    /** The name of the file, including its extension. */
+    name: string;
+    /** The size of the file in bytes. */
+    size: number;
+    /** The designated purpose of the file (e.g. "attachment"). */
+    purpose: string;
+    /** The Unix timestamp (in seconds) for when the file was created. */
+    createdAt: number;
 }
 
 /**
