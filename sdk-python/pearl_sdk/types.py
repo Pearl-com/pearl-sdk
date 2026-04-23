@@ -1,7 +1,7 @@
 """Type definitions for the Pearl SDK."""
 
 from typing import Dict, List, Optional, Union, Any
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 
 class ConversationModes:
@@ -14,6 +14,12 @@ class ConversationModes:
     PEARL_AI_EXPERT = 'pearl-ai-expert'
     # Direct expert connection mode
     EXPERT = 'expert'
+
+
+class FilePurposes:
+    """File purpose constants for the Pearl files endpoint."""
+    # Files attached to chat conversations for the Assistant or Expert
+    ATTACHMENT = 'attachment'
 
 
 # Default model for Pearl API requests
@@ -41,6 +47,8 @@ class ChatMessage:
     """Represents a single message in a chat conversation."""
     role: str  # 'user', 'system', or 'assistant'
     content: str
+    # Optional list of uploaded file IDs to attach to this message.
+    attachments: Optional[List[str]] = None
 
 
 @dataclass
@@ -82,6 +90,21 @@ class ChatCompletionResponse:
     created: int
     question_id: Optional[str]
     user_id: Optional[str]
+
+
+@dataclass
+class FileObject:
+    """Represents an uploaded file returned by the /files endpoint."""
+    # Unique identifier of the file.
+    id: str
+    # The name of the file, including its extension.
+    name: str
+    # The size of the file in bytes.
+    size: int
+    # The designated purpose of the file (e.g. "attachment").
+    purpose: str
+    # The Unix timestamp (in seconds) for when the file was created.
+    created_at: int
 
 
 @dataclass

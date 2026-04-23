@@ -98,6 +98,22 @@ describe('Chat', () => {
       expect(response).toEqual(mockResponseData);
     });
 
+    test('should include attachments on messages when provided', async () => {
+      mockAxiosInstance.post.mockResolvedValueOnce({ data: mockResponseData });
+
+      const messagesWithAttachments: ChatMessage[] = [
+        { role: 'user', content: "What's on the image?", attachments: ['file-123', 'file-456'] }
+      ];
+
+      await chat.sendCompletion(messagesWithAttachments, testSessionId, testMode, testModel);
+
+      expect(mockAxiosInstance.post).toHaveBeenCalledWith('/chat/completions', {
+        model: testModel,
+        messages: messagesWithAttachments,
+        metadata: { mode: testMode, sessionId: testSessionId }
+      }, undefined);
+    });
+
     test('should propagate errors from apiClient.post', async () => {
       const mockError = new Error('Network error');
       mockAxiosInstance.post.mockRejectedValueOnce(mockError);

@@ -11,6 +11,7 @@ from urllib3.util.retry import Retry
 from .types import RetryPolicyConfig
 from .core.retry_policy import RetryPolicy
 from .resources.chat import Chat
+from .resources.files import Files
 from .resources.webhooks import Webhooks
 
 
@@ -70,6 +71,7 @@ class PearlClient:
 
         # Initialize resources
         self.chat = Chat(self._session)
+        self.files = Files(self._session)
         self.webhooks = Webhooks(self._session, self._api_key)
 
     def _create_request_wrapper(self, original_request):

@@ -95,6 +95,58 @@ response = client.chat.send_completion(
 
 For more information about conversation modes, see the [Pearl API documentation](https://www.pearl.com/api/docs/conversation-modes).
 
+### Attachments
+
+Upload files (images or documents) with the Files resource and attach them to chat messages by referencing the returned file id.
+
+> **Important:** Files cannot be uploaded on the very first message of a chat session. The session must already exist on the server before a file can be associated with it, so you must send at least one chat completion with the same `session_id` before calling `client.files.create`.
+
+The recommended flow is:
+
+1. Send an initial chat completion to create the session.
+2. Upload the file with the same `session_id`.
+3. Send a follow-up chat completion that references the uploaded file id via `attachments`.
+
+```python
+import uuid
+from pearl_sdk import PearlClient, ChatMessage, ConversationModes, FilePurposes
+
+client = PearlClient(api_key='YOUR_PEARL_API_KEY')
+session_id = str(uuid.uuid4())
+
+# 1. Initialize the session with any first message.
+messages = [ChatMessage(role="user", content="Hello")]
+first = client.chat.send_completion(
+    messages=messages,
+    session_id=session_id,
+    mode=ConversationModes.PEARL_AI_EXPERT,
+)
+messages.append(ChatMessage(role="assistant", content=first.choices[0].message.content))
+
+# 2. Upload the file against the now-initialized session.
+with open('image.png', 'rb') as image_file:
+    uploaded = client.files.create(
+        file=image_file,
+        session_id=session_id,
+        purpose=FilePurposes.ATTACHMENT,  # optional, defaults to "attachment"
+    )
+
+# 3. Send a follow-up message that references the uploaded file id.
+messages.append(ChatMessage(
+    role="user",
+    content="What's on the image?",
+    attachments=[uploaded.id],
+))
+response = client.chat.send_completion(
+    messages=messages,
+    session_id=session_id,
+    mode=ConversationModes.PEARL_AI_EXPERT,
+)
+print(response.choices[0].message.content)
+```
+
+`client.files.create` also accepts a file path or an `(filename, content[, content_type])` tuple.
+
 ### Webhook Signature Verification
 
 Verify incoming webhook requests from Pearl to ensure their authenticity. You'll need the raw request body and the signature from the `X-Pearl-API-Signature` header.

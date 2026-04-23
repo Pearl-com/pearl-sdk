@@ -117,6 +117,44 @@ class TestChat:
             timeout=30
         )
 
+    def test_send_completion_with_attachments(self):
+        """Attachments on a ChatMessage should be included in the request body."""
+        test_messages = [
+            ChatMessage(
+                role="user",
+                content="What's on the image?",
+                attachments=["file-123", "file-456"],
+            )
+        ]
+
+        mock_response_data = {
+            "id": "chatcmpl-test",
+            "choices": [],
+            "created": 1,
+            "questionId": None,
+            "userId": None,
+        }
+
+        mock_response = Mock()
+        mock_response.json.return_value = mock_response_data
+        mock_response.raise_for_status.return_value = None
+        self.mock_session.post.return_value = mock_response
+
+        self.chat.send_completion(test_messages, "sess-1", mode="pearl-ai", model="pearl-ai")
+
+        self.mock_session.post.assert_called_once_with(
+            '/chat/completions',
+            json={
+                "model": "pearl-ai",
+                "messages": [{
+                    "role": "user",
+                    "content": "What's on the image?",
+                    "attachments": ["file-123", "file-456"],
+                }],
+                "metadata": {"mode": "pearl-ai", "sessionId": "sess-1"},
+            },
+        )
+
     def test_send_completion_http_error(self):
         """Test that HTTP errors are properly raised."""
         # Arrange

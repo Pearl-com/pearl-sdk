@@ -22,6 +22,7 @@ Both SDKs provide identical functionality:
 
 - **Chat Completions**: Interact with Pearl's AI models for conversational and text generation tasks
 - **Conversation Modes**: Control AI behavior with different modes (pearl-ai-verified, pearl-ai-expert)
+- **File Attachments**: Upload images or documents and attach them to chat messages (requires an initialized session — send a first message before uploading)
 - **Webhook Management**: Programmatically register and update webhook endpoints
 - **Webhook Signature Verification**: Securely verify the authenticity and integrity of incoming webhook payloads
 - **Built-in Retry Logic**: Automatic retries with exponential backoff and jitter for enhanced reliability

@@ -1,5 +1,6 @@
 import axios, { AxiosInstance, InternalAxiosRequestConfig, AxiosError, AxiosResponse } from 'axios';
 import { Chat } from '../resources/chat';
+import { Files } from '../resources/files';
 import { Webhooks } from '../resources/webhooks';
 import { ProblemDetailsResponse, RetryPolicyConfig } from '../types';
 import { RetryPolicy } from './RetryPolicy';
@@ -29,6 +30,10 @@ export class PearlClient {
    * Provides access to Chat API operations.
    */
   public chat: Chat;
+  /**
+   * Provides access to Files API operations (upload files for attachments).
+   */
+  public files: Files;
   /**
    * Provides access to Webhooks API operations.
    */
@@ -96,6 +101,7 @@ export class PearlClient {
     );
 
     this.chat = new Chat(this.apiClient);
+    this.files = new Files(this.apiClient);
     this.webhooks = new Webhooks(this.apiClient, this.apiKey);
   }
 }

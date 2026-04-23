@@ -46,13 +46,9 @@ class Chat:
         Raises:
             requests.RequestException: If the API call fails or a network issue occurs.
         """
-        # Construct the request object internally
         request_data = {
             "model": model,
-            "messages": [
-                {"role": msg.role, "content": msg.content}
-                for msg in messages
-            ],
+            "messages": [self._serialize_message(msg) for msg in messages],
             "metadata": {"mode": mode, "sessionId": session_id}
         }
         
@@ -67,6 +63,14 @@ class Chat:
         # Convert response to ChatCompletionResponse
         data = response.json()
         return self._parse_chat_completion_response(data)
+
+    def _serialize_message(self, msg: ChatMessage) -> Dict[str, Any]:
+        """Serialize a ChatMessage into the API payload shape."""
+        payload: Dict[str, Any] = {"role": msg.role, "content": msg.content}
+        attachments = getattr(msg, "attachments", None)
+        if attachments:
+            payload["attachments"] = list(attachments)
+        return payload
 
     def _parse_chat_completion_response(self, data: Dict[str, Any]) -> ChatCompletionResponse:
         """
