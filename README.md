@@ -8,7 +8,7 @@ Official SDKs for the Pearl API, providing robust and easy-to-use libraries for 
 - **Location**: `sdk-typescript/`
 - **Language**: TypeScript/JavaScript
 - **Runtime**: Node.js
-- **Package**: `pearl-sdk`
+- **Package**: `@pearl.com/pearl-api-client-sdk`
 
 ### Python SDK  
 - **Location**: `sdk-python/`
@@ -32,11 +32,11 @@ Both SDKs provide identical functionality:
 
 ### TypeScript/JavaScript
 ```bash
-npm install pearl-sdk
+npm install @pearl.com/pearl-api-client-sdk
 ```
 
 ```typescript
-import { PearlClient, CONVERSATION_MODES } from 'pearl-sdk';
+import { PearlClient, CONVERSATION_MODES } from '@pearl.com/pearl-api-client-sdk';
 
 const client = new PearlClient('YOUR_API_KEY');
 const response = await client.chat.sendCompletion(
@@ -76,7 +76,7 @@ Pearl supports different conversation modes that control how the AI responds. Us
 
 **TypeScript:**
 ```typescript
-import { CONVERSATION_MODES } from 'pearl-sdk';
+import { CONVERSATION_MODES } from '@pearl.com/pearl-api-client-sdk';
 
 // Using constants (recommended)
 metadata: { mode: CONVERSATION_MODES.EXPERT }
