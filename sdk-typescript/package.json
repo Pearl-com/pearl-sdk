@@ -1,6 +1,6 @@
 {
   "name": "@pearl.com/pearl-api-client-sdk",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "description": "SDK for the Pearl API",
   "author": "Pearl.com",
   "license": "MIT",
