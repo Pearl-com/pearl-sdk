@@ -1,13 +1,13 @@
-import { AxiosInstance, AxiosRequestConfig } from 'axios';
+import { HttpClient, PearlRequestOptions } from '../core/HttpClient';
 import { ChatCompletionRequest, ChatCompletionResponse, ChatMessage, CONVERSATION_MODES, DEFAULT_MODEL } from '../types';
 
 /**
  * Manages chat-related operations, structured under `client.chat`.
  */
 export class Chat {
-  private apiClient: AxiosInstance;
+  private apiClient: HttpClient;
 
-  constructor(apiClient: AxiosInstance) {
+  constructor(apiClient: HttpClient) {
     this.apiClient = apiClient;
   }
   /**
@@ -18,16 +18,16 @@ export class Chat {
    * @param sessionId Unique identifier for the chat session.
    * @param mode The conversation mode (optional, defaults to PEARL_AI).
    * @param model The model to use (optional, defaults to "pearl-ai").
-   * @param requestConfig Optional Axios request configuration.
+   * @param requestConfig Optional request configuration.
    * @returns A Promise that resolves to the ChatCompletionResponse on success.
-   * @throws AxiosError if the API call fails or a network issue occurs.
+   * @throws PearlError if the API call fails or a network issue occurs.
    */
   public async sendCompletion(
     messages: ChatMessage[],
     sessionId: string,
     mode: string = CONVERSATION_MODES.PEARL_AI,
     model: string = DEFAULT_MODEL,
-    requestConfig?: AxiosRequestConfig,
+    requestConfig?: PearlRequestOptions,
     extraMetadata?: Record<string, string>
   ): Promise<ChatCompletionResponse> {
     // Construct the request object internally
@@ -44,8 +44,6 @@ export class Chat {
       metadata
     };
 
-    // The Axios interceptors in PearlClient handle error logging, retries,
-    // and ultimately resolve the promise with `response.data` or reject it with an error.
     const response = await this.apiClient.post<ChatCompletionResponse>(
       '/chat/completions',
       request,

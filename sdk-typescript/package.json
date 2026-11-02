@@ -1,6 +1,6 @@
 {
   "name": "@pearl.com/pearl-api-client-sdk",
-  "version": "1.0.2",
+  "version": "2.0.0",
   "description": "SDK for the Pearl API",
   "author": "Pearl.com",
   "license": "MIT",
@@ -57,7 +57,6 @@
     "typescript": "^5.0.0"
   },
   "dependencies": {
-    "axios": "^1.15.2",
     "uuid": "^11.1.0"
   }
 }

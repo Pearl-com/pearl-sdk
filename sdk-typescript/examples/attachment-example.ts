@@ -16,13 +16,13 @@
 
 import { readFileSync } from 'fs';
 import { v4 as uuidv4 } from 'uuid';
-import axios from 'axios';
 import {
     PearlClient,
+    PearlError,
     CONVERSATION_MODES,
     FILE_PURPOSES,
     ChatMessage
-} from 'pearl-sdk';
+} from '../src';
 
 const API_KEY = 'YOUR_PEARL_API_KEY';
 const IMAGE_PATH = 'image.png';
@@ -80,13 +80,13 @@ async function runAttachmentExample() {
         );
 
         console.log("Assistant's message:", chatResponse.choices[0].message.content);
-    } catch (error: any) {
+    } catch (error) {
         console.error('\n--- Error ---');
-        if (axios.isAxiosError(error)) {
+        if (error instanceof PearlError) {
             console.error('Error message:', error.message);
-            if (error.response) {
-                console.error('Status:', error.response.status);
-                console.error('Data:', JSON.stringify(error.response.data, null, 2));
+            if (error.kind === 'http') {
+                console.error('Status:', error.status);
+                console.error('Data:', JSON.stringify(error.data, null, 2));
             }
         } else {
             console.error('An unexpected error occurred:', error);

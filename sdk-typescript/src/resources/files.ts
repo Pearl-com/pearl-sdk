@@ -1,4 +1,4 @@
-import { AxiosInstance, AxiosRequestConfig } from 'axios';
+import { HttpClient, PearlRequestOptions } from '../core/HttpClient';
 import { FileObject, FILE_PURPOSES, FilePurpose } from '../types';
 
 /**
@@ -31,9 +31,9 @@ export interface FileCreateParams {
  * attached to chat conversations for use by the Assistant or Expert.
  */
 export class Files {
-    private apiClient: AxiosInstance;
+    private apiClient: HttpClient;
 
-    constructor(apiClient: AxiosInstance) {
+    constructor(apiClient: HttpClient) {
         this.apiClient = apiClient;
     }
 
@@ -44,13 +44,13 @@ export class Files {
      * `attachments` field on `ChatMessage`.
      *
      * @param params Upload parameters including the file and its session id.
-     * @param requestConfig Optional Axios request configuration.
+     * @param requestConfig Optional request configuration.
      * @returns A Promise that resolves to the uploaded FileObject.
-     * @throws AxiosError if the API call fails or a network issue occurs.
+     * @throws PearlError if the API call fails or a network issue occurs.
      */
     public async create(
         params: FileCreateParams,
-        requestConfig?: AxiosRequestConfig
+        requestConfig?: PearlRequestOptions
     ): Promise<FileObject> {
         const {
             file,
@@ -64,18 +64,10 @@ export class Files {
         formData.append('purpose', String(purpose));
         formData.append('sessionId', sessionId);
 
-        const mergedConfig: AxiosRequestConfig = {
-            ...(requestConfig || {}),
-            headers: {
-                ...(requestConfig?.headers || {}),
-                'Content-Type': 'multipart/form-data'
-            }
-        };
-
         const response = await this.apiClient.post<FileObject>(
             '/files',
             formData,
-            mergedConfig
+            requestConfig
         );
 
         return response.data;
@@ -90,7 +82,11 @@ export class Files {
         const resolvedName = filename || 'file';
 
         if (typeof Blob !== 'undefined' && file instanceof Blob) {
-            formData.append('file', file, filename);
+            if (filename === undefined) {
+                formData.append('file', file);
+            } else {
+                formData.append('file', file, filename);
+            }
             return formData;
         }
 

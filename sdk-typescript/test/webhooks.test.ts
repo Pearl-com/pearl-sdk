@@ -1,4 +1,4 @@
-import axios, { AxiosInstance, AxiosRequestConfig } from 'axios';
+import { HttpClient, PearlRequestOptions } from '../src/core/HttpClient';
 import { Webhooks } from '../src/resources/webhooks';
 import { WebhookEndpointRequest } from '../src/types';
 
@@ -12,24 +12,7 @@ import { verifyWebhookSignature, computeWebhookSignature } from '../src/utils/si
 const mockedVerifyWebhookSignature = verifyWebhookSignature as jest.Mock;
 const mockedComputeWebhookSignature = computeWebhookSignature as jest.Mock;
 
-const mockAxiosInstance: jest.Mocked<AxiosInstance> = {
-  post: jest.fn(),
-  put: jest.fn(),
-  get: jest.fn(),
-  delete: jest.fn(),
-  request: jest.fn(),
-  head: jest.fn(),
-  options: jest.fn(),
-  patch: jest.fn(),
-  isAxiosError: jest.fn(),
-  Axios: jest.fn(),
-  getUri: jest.fn(),
-  defaults: {},
-  interceptors: {
-    request: { use: jest.fn(), eject: jest.fn() },
-    response: { use: jest.fn(), eject: jest.fn() },
-  },
-} as unknown as jest.Mocked<AxiosInstance>;
+const mockHttpClient = { post: jest.fn(), put: jest.fn() } as unknown as jest.Mocked<HttpClient>;
 
 
 describe('Webhooks', () => {
@@ -39,22 +22,22 @@ describe('Webhooks', () => {
 
   beforeEach(() => {
     jest.clearAllMocks(); // Clear mocks before each test
-    webhooks = new Webhooks(mockAxiosInstance, MOCK_WEBHOOK_SECRET);
+    webhooks = new Webhooks(mockHttpClient, MOCK_WEBHOOK_SECRET);
   });
 
   // --- Constructor Tests ---
   test('constructor should initialize with apiClient and webhookSecret', () => {
-    expect(webhooks['apiClient']).toBe(mockAxiosInstance);
+    expect(webhooks['apiClient']).toBe(mockHttpClient);
     expect(webhooks['webhookSecret']).toBe(MOCK_WEBHOOK_SECRET);
   });
 
   test('constructor should throw an error if webhookSecret is missing', () => {
     // @ts-ignore - Intentionally testing invalid constructor input
-    expect(() => new Webhooks(mockAxiosInstance, undefined)).toThrow("Webhook secret must be provided to Webhooks resource.");
+    expect(() => new Webhooks(mockHttpClient, undefined)).toThrow("Webhook secret must be provided to Webhooks resource.");
     // @ts-ignore
-    expect(() => new Webhooks(mockAxiosInstance, '')).toThrow("Webhook secret must be provided to Webhooks resource.");
+    expect(() => new Webhooks(mockHttpClient, '')).toThrow("Webhook secret must be provided to Webhooks resource.");
     // @ts-ignore
-    expect(() => new Webhooks(mockAxiosInstance, null)).toThrow("Webhook secret must be provided to Webhooks resource.");
+    expect(() => new Webhooks(mockHttpClient, null)).toThrow("Webhook secret must be provided to Webhooks resource.");
   });
 
   // --- isValidSignature Tests ---
@@ -95,22 +78,22 @@ describe('Webhooks', () => {
     const registerRequest: WebhookEndpointRequest = { endpoint: 'https://example.com/webhook' };
 
     test('should call apiClient.post with correct endpoint and request', async () => {
-      mockAxiosInstance.post.mockResolvedValueOnce({});
+      mockHttpClient.post.mockResolvedValueOnce({ data: undefined });
       await webhooks.register(registerRequest);
-      expect(mockAxiosInstance.post).toHaveBeenCalledTimes(1);
-      expect(mockAxiosInstance.post).toHaveBeenCalledWith('/webhook', registerRequest, undefined);
+      expect(mockHttpClient.post).toHaveBeenCalledTimes(1);
+      expect(mockHttpClient.post).toHaveBeenCalledWith('/webhook', registerRequest, undefined);
     });
 
     test('should call apiClient.post with requestConfig', async () => {
-      const requestConfig: AxiosRequestConfig = { headers: { 'X-Test': 'Header' } };
-      mockAxiosInstance.post.mockResolvedValueOnce({});
+      const requestConfig: PearlRequestOptions = { headers: { 'X-Test': 'Header' } };
+      mockHttpClient.post.mockResolvedValueOnce({ data: undefined });
       await webhooks.register(registerRequest, requestConfig);
-      expect(mockAxiosInstance.post).toHaveBeenCalledWith('/webhook', registerRequest, requestConfig);
+      expect(mockHttpClient.post).toHaveBeenCalledWith('/webhook', registerRequest, requestConfig);
     });
 
     test('should propagate errors from apiClient.post', async () => {
       const mockError = new Error('Registration failed');
-      mockAxiosInstance.post.mockRejectedValueOnce(mockError);
+      mockHttpClient.post.mockRejectedValueOnce(mockError);
       await expect(webhooks.register(registerRequest)).rejects.toBe(mockError);
     });
   });
@@ -120,22 +103,22 @@ describe('Webhooks', () => {
     const updateRequest: WebhookEndpointRequest = { endpoint: 'https://example.com/updated-webhook' };
 
     test('should call apiClient.put with correct endpoint and request', async () => {
-      mockAxiosInstance.put.mockResolvedValueOnce({});
+      mockHttpClient.put.mockResolvedValueOnce({ data: undefined });
       await webhooks.update(updateRequest);
-      expect(mockAxiosInstance.put).toHaveBeenCalledTimes(1);
-      expect(mockAxiosInstance.put).toHaveBeenCalledWith('/webhook', updateRequest, undefined);
+      expect(mockHttpClient.put).toHaveBeenCalledTimes(1);
+      expect(mockHttpClient.put).toHaveBeenCalledWith('/webhook', updateRequest, undefined);
     });
 
     test('should call apiClient.put with requestConfig', async () => {
-      const requestConfig: AxiosRequestConfig = { timeout: 5000 };
-      mockAxiosInstance.put.mockResolvedValueOnce({});
+      const requestConfig: PearlRequestOptions = { timeout: 5000 };
+      mockHttpClient.put.mockResolvedValueOnce({ data: undefined });
       await webhooks.update(updateRequest, requestConfig);
-      expect(mockAxiosInstance.put).toHaveBeenCalledWith('/webhook', updateRequest, requestConfig);
+      expect(mockHttpClient.put).toHaveBeenCalledWith('/webhook', updateRequest, requestConfig);
     });
 
     test('should propagate errors from apiClient.put', async () => {
       const mockError = new Error('Update failed');
-      mockAxiosInstance.put.mockRejectedValueOnce(mockError);
+      mockHttpClient.put.mockRejectedValueOnce(mockError);
       await expect(webhooks.update(updateRequest)).rejects.toBe(mockError);
     });
   });

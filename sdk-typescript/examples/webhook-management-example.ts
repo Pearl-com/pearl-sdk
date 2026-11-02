@@ -3,8 +3,7 @@
 // 2. Transpile and run:
 //    npx ts-node examples/webhook-management-example.ts
 
-import { PearlClient, WebhookEndpointRequest } from 'pearl-sdk';
-import axios from 'axios'; // Import axios for error checking
+import { PearlError, PearlClient, WebhookEndpointRequest } from '../src';
 
 // --- IMPORTANT: Configure your API Key and Webhook URL ---
 // Replace 'YOUR_PEARL_API_KEY' with your actual Pearl API Key.
@@ -45,13 +44,13 @@ async function runWebhookManagementExample() {
     await client.webhooks.update(updateRequest);
     console.log(`Successfully updated webhook endpoint.`);
 
-  } catch (error: any) {
+  } catch (error) {
     console.error("\n--- Webhook Management API Error ---");
-    if (axios.isAxiosError(error)) {
+    if (error instanceof PearlError) {
       console.error("Error message:", error.message);
-      if (error.response) {
-        console.error("Status:", error.response.status);
-        console.error("Data:", JSON.stringify(error.response.data, null, 2));
+      if (error.kind === 'http') {
+        console.error("Status:", error.status);
+        console.error("Data:", JSON.stringify(error.data, null, 2));
       }
     } else {
       console.error("An unexpected error occurred:", error);

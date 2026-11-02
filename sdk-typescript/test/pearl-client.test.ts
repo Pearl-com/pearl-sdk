@@ -1,273 +1,168 @@
-import axios, { AxiosInstance, AxiosRequestConfig, AxiosError, AxiosResponse, InternalAxiosRequestConfig, AxiosRequestHeaders } from 'axios';
-import { PearlClient } from '../src/index';
-import { Chat } from '../src/resources/chat';
-import { Files } from '../src/resources/files';
-import { Webhooks } from '../src/resources/webhooks';
-import { RetryPolicy } from '../src/core/RetryPolicy';
-import { ProblemDetailsResponse } from '../src/types';
+import { PearlClient, PearlError, PearlRequestOptions } from '../src';
 
-interface TestAxiosRequestConfig extends InternalAxiosRequestConfig {
-  __retryCount?: number;
-}
+const send = (client: PearlClient, options: PearlRequestOptions = {}) => client.chat.sendCompletion([], 'session', undefined, undefined, options);
 
-type MockedAxiosInstanceCallable = jest.Mock & AxiosInstance;
+describe('fetch transport', () => {
+  let mock: jest.SpyInstance;
+  beforeEach(() => { mock = jest.spyOn(globalThis, 'fetch'); });
+  afterEach(() => { jest.restoreAllMocks(); jest.useRealTimers(); });
 
-jest.mock('axios');
-const mockedAxios = axios as jest.Mocked<typeof axios>;
-
-jest.mock('../src/core/RetryPolicy', () => {
-  return {
-    RetryPolicy: jest.fn().mockImplementation((config) => {
-      return {
-        enabled: config?.enabled ?? true,
-        maxRetries: config?.maxRetries ?? 30,
-        retryDelayMs: config?.retryDelayMs ?? 100,
-        maxRetryDelayMs: config?.maxRetryDelayMs ?? 30000,
-        shouldRetry: jest.fn(),
-        calculateRetryDelay: jest.fn(() => 0),
-      };
-    }),
-  };
-});
-const MockedRetryPolicy = RetryPolicy as jest.MockedClass<typeof RetryPolicy>;
-
-
-describe('PearlClient', () => {
-  const MOCK_API_KEY = 'test_api_key_123';
-  const MOCK_BASE_URL = 'https://api.test.com/api/v1/';
-
-  beforeEach(() => {
-    jest.clearAllMocks();
-
-    const mockAxiosInstanceCallable: MockedAxiosInstanceCallable = jest.fn() as unknown as MockedAxiosInstanceCallable;
-    Object.assign(mockAxiosInstanceCallable, {
-      defaults: {},
-      interceptors: {
-        request: { use: jest.fn(), eject: jest.fn() },
-        response: { use: jest.fn(), eject: jest.fn() },
-      },
-      get: jest.fn(),
-      post: jest.fn(),
-      put: jest.fn(),
-      delete: jest.fn(),
-      request: jest.fn(),
-      head: jest.fn(),
-      options: jest.fn(),
-      patch: jest.fn(),
-      isAxiosError: jest.fn(),
-      Axios: jest.fn(),
-      getUri: jest.fn(),
+  test.each([0, -1, NaN, Infinity, 2_147_483_648])('rejects invalid timeout %s', timeout => {
+    expect(() => new PearlClient('key', { timeout })).toThrow();
+  });
+  test('requires an API key', () => { expect(() => new PearlClient('')).toThrow(); });
+  test.each(['https://example.com/api/v1', 'https://example.com/api/v1/'])('preserves base path %s', async baseUrl => {
+    mock.mockResolvedValue(new Response('{"id":"ok"}'));
+    const headers = { authorization: 'Bearer override', 'X-Trace': 'test' };
+    await expect(send(new PearlClient('key', { baseUrl }), { headers })).resolves.toEqual({ id: 'ok' });
+    const [url, init] = mock.mock.calls[0];
+    expect(url).toBe('https://example.com/api/v1/chat/completions');
+    expect(init.headers.get('authorization')).toBe('Bearer override');
+    expect(init.headers.get('content-type')).toBe('application/json');
+    expect(JSON.parse(init.body).metadata.sessionId).toBe('session');
+    expect(headers).toEqual({ authorization: 'Bearer override', 'X-Trace': 'test' });
+  });
+  test.each([['plain text', 'plain text'], ['', undefined], ['{broken', '{broken']])('handles body %s', async (body, expected) => {
+    mock.mockResolvedValue(new Response(body));
+    await expect(send(new PearlClient('key'))).resolves.toEqual(expected);
+  });
+  test('exposes HTTP error details without request credentials', async () => {
+    mock.mockResolvedValue(new Response('{"message":"bad"}', { status: 400, headers: { 'X-Trace': '123' } }));
+    try { await send(new PearlClient('secret')); throw new Error('Expected failure'); }
+    catch (error) {
+      expect(error).toBeInstanceOf(PearlError);
+      expect(error).toMatchObject({ kind: 'http', status: 400, data: { message: 'bad' } });
+      expect((error as PearlError).headers?.get('x-trace')).toBe('123');
+      expect(JSON.stringify(error)).not.toContain('secret');
+    }
+    expect(mock).toHaveBeenCalledTimes(1);
+  });
+  test('network failure is not retried', async () => {
+    mock.mockRejectedValue(new TypeError('offline'));
+    await expect(send(new PearlClient('key'))).rejects.toMatchObject({ kind: 'network' });
+    expect(mock).toHaveBeenCalledTimes(1);
+  });
+  test('retries 422 and succeeds', async () => {
+    mock.mockResolvedValueOnce(new Response('busy', { status: 422 })).mockResolvedValueOnce(new Response('{}'));
+    await expect(send(new PearlClient('key', { retryPolicy: { retryDelayMs: 1 } }))).resolves.toEqual({});
+    expect(mock).toHaveBeenCalledTimes(2);
+  });
+  test.each([false, true])('respects retry limits (enabled=%s)', async enabled => {
+    mock.mockImplementation(async () => new Response('busy', { status: 422 }));
+    await expect(send(new PearlClient('key', { retryPolicy: { enabled, maxRetries: 1, retryDelayMs: 1 } }))).rejects.toMatchObject({ status: 422 });
+    expect(mock).toHaveBeenCalledTimes(enabled ? 2 : 1);
+  });
+  test('pre-aborted requests never fetch', async () => {
+    const controller = new AbortController(); controller.abort();
+    await expect(send(new PearlClient('key'), { signal: controller.signal })).rejects.toMatchObject({ kind: 'aborted' });
+    expect(mock).not.toHaveBeenCalled();
+  });
+  test('per-request timeout aborts and clears timers', async () => {
+    jest.useFakeTimers();
+    mock.mockImplementation((_url, init) => new Promise((_resolve, reject) => init.signal.addEventListener('abort', () => reject(new Error('aborted')))));
+    const result = expect(send(new PearlClient('key'), { timeout: 10 })).rejects.toMatchObject({ kind: 'timeout' });
+    await jest.advanceTimersByTimeAsync(10); await result;
+    expect(jest.getTimerCount()).toBe(0);
+  });
+  test.each([0, NaN, Infinity, 2_147_483_648])('rejects invalid per-request timeout %s before fetch', async timeout => {
+    await expect(send(new PearlClient('key'), { timeout })).rejects.toThrow('Timeout');
+    expect(mock).not.toHaveBeenCalled();
+  });
+  test.each([401, 429, 500])('does not retry HTTP %s', async status => {
+    mock.mockResolvedValue(new Response('error', { status }));
+    await expect(send(new PearlClient('key'))).rejects.toMatchObject({ kind: 'http', status, data: 'error' });
+    expect(mock).toHaveBeenCalledTimes(1);
+  });
+  test.each([201, 204])('accepts HTTP %s', async status => {
+    mock.mockResolvedValue(new Response(null, { status }));
+    await expect(new PearlClient('key').webhooks.register({ endpoint: 'https://example.com' })).resolves.toBeUndefined();
+  });
+  test.each([200, 400])('cleans up timers and abort listeners after HTTP %s', async status => {
+    jest.useFakeTimers();
+    const signal = new AbortController().signal;
+    const add = jest.spyOn(signal, 'addEventListener');
+    const remove = jest.spyOn(signal, 'removeEventListener');
+    mock.mockResolvedValue(new Response('{}', { status }));
+    const request = send(new PearlClient('key'), { signal });
+    if (status === 200) await expect(request).resolves.toEqual({});
+    else await expect(request).rejects.toMatchObject({ status });
+    expect(remove).toHaveBeenCalledWith('abort', add.mock.calls[0][1]);
+    expect(jest.getTimerCount()).toBe(0);
+  });
+  test('uses the default timeout and keeps the first abort reason', async () => {
+    jest.useFakeTimers();
+    let rejectRequest!: (reason: unknown) => void;
+    mock.mockImplementation(() => new Promise((_resolve, reject) => { rejectRequest = reject; }));
+    const controller = new AbortController();
+    const result = expect(send(new PearlClient('key'), { signal: controller.signal })).rejects.toMatchObject({ kind: 'aborted' });
+    const signal = mock.mock.calls[0][1].signal as AbortSignal;
+    await jest.advanceTimersByTimeAsync(29999);
+    expect(signal.aborted).toBe(false);
+    controller.abort();
+    await jest.advanceTimersByTimeAsync(1);
+    rejectRequest(new Error('delayed abort rejection'));
+    await result;
+    expect(jest.getTimerCount()).toBe(0);
+  });
+  test('concurrent requests have independent retry counts', async () => {
+    const attempts: Record<string, number> = {};
+    mock.mockImplementation(async (_url, init) => {
+      const session = JSON.parse(init.body).metadata.sessionId;
+      attempts[session] = (attempts[session] || 0) + 1;
+      return new Response('{}', { status: attempts[session] === 1 ? 422 : 200 });
     });
-    
-    mockedAxios.create.mockReturnValue(mockAxiosInstanceCallable);
+    const client = new PearlClient('key', { retryPolicy: { maxRetries: 1, retryDelayMs: 1 } });
+    await expect(Promise.all(['a', 'b'].map(session => client.chat.sendCompletion([], session)))).resolves.toEqual([{}, {}]);
+    expect(attempts).toEqual({ a: 2, b: 2 });
   });
-
-  // --- Constructor Validation Tests ---
-
-  test('should throw an error if apiKey is missing', () => {
-    // @ts-ignore - Intentionally test invalid config
-    expect(() => new PearlClient('')).toThrow("PearlClient must include an apiKey.");
-    // @ts-ignore - Intentionally test invalid config
-    expect(() => new PearlClient(undefined as any)).toThrow("PearlClient must include an apiKey.");
-    // @ts-ignore - Intentionally test invalid config
-    expect(() => new PearlClient(null as any)).toThrow("PearlClient must include an apiKey.");
-  });
-
-  test('should throw an error if timeout is not a positive number', () => {
-    // @ts-ignore - Intentionally test invalid config
-    expect(() => new PearlClient(MOCK_API_KEY, { timeout: 0 })).toThrow("Timeout must be a positive number if provided.");
-    // @ts-ignore - Intentionally test invalid config
-    expect(() => new PearlClient(MOCK_API_KEY, { timeout: -100 })).toThrow("Timeout must be a positive number if provided.");
-    // @ts-ignore - Intentionally test invalid config
-    expect(() => new PearlClient(MOCK_API_KEY, { timeout: 'abc' as any })).toThrow("Timeout must be a positive number if provided.");
-  });
-
-  // --- Constructor Initialization Tests ---
-
-  test('should initialize with provided config and default values', () => {
-    const client = new PearlClient(MOCK_API_KEY);
-
-    expect(client['apiKey']).toBe(MOCK_API_KEY);
-    expect(client['baseUrl']).toBe('https://api.pearl.com/api/v1/');
-    expect(client['apiClient']).toBeDefined();
-    expect(mockedAxios.create).toHaveBeenCalledWith(expect.objectContaining({
-      baseURL: 'https://api.pearl.com/api/v1/',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${MOCK_API_KEY}`,
-      },
-      timeout: 30000,
+  test('cleans up the original signal when the caller replaces it during a request', async () => {
+    const original = new AbortController();
+    const replacement = new AbortController();
+    const add = jest.spyOn(original.signal, 'addEventListener');
+    const remove = jest.spyOn(original.signal, 'removeEventListener');
+    const removeReplacement = jest.spyOn(replacement.signal, 'removeEventListener');
+    const options: PearlRequestOptions = { signal: original.signal };
+    mock.mockImplementation((_url, init) => new Promise((_resolve, reject) => {
+      init.signal.addEventListener('abort', () => reject(new Error('aborted')), { once: true });
     }));
-    expect(client.chat).toBeInstanceOf(Chat);
-    expect(client.files).toBeInstanceOf(Files);
-    expect(client.webhooks).toBeInstanceOf(Webhooks);
-    expect(MockedRetryPolicy).toHaveBeenCalledWith(undefined);
+
+    const result = expect(send(new PearlClient('key'), options)).rejects.toMatchObject({ kind: 'aborted' });
+    options.signal = replacement.signal;
+    original.abort();
+    await result;
+
+    expect(remove).toHaveBeenCalledWith('abort', add.mock.calls[0][1]);
+    expect(removeReplacement).not.toHaveBeenCalled();
   });
-
-  test('should initialize with custom baseUrl and timeout', () => {
-    const client = new PearlClient(MOCK_API_KEY, {
-      baseUrl: MOCK_BASE_URL,
-      timeout: 5000,
-      retryPolicy: { enabled: false, maxRetries: 5 }
-    });
-
-    expect(client['apiKey']).toBe(MOCK_API_KEY);
-    expect(client['baseUrl']).toBe(MOCK_BASE_URL);
-    expect(client['apiClient']).toBeDefined();
-    expect(mockedAxios.create).toHaveBeenCalledWith(expect.objectContaining({
-      baseURL: MOCK_BASE_URL,
-      timeout: 5000,
+  test('uses the default API URL and authentication', async () => {
+    mock.mockResolvedValue(new Response('{}'));
+    await send(new PearlClient('test-key'));
+    const [url, init] = mock.mock.calls[0];
+    expect(url).toBe('https://api.pearl.com/api/v1/chat/completions');
+    expect(init.headers.get('authorization')).toBe('Bearer test-key');
+  });
+  test('uses the client timeout when a request has no override', async () => {
+    jest.useFakeTimers();
+    mock.mockImplementation((_url, init) => new Promise((_resolve, reject) => {
+      init.signal.addEventListener('abort', () => reject(new Error('aborted')), { once: true });
     }));
-    expect(client.chat).toBeInstanceOf(Chat);
-    expect(client.webhooks).toBeInstanceOf(Webhooks);
-    expect(MockedRetryPolicy).toHaveBeenCalledWith({ enabled: false, maxRetries: 5 });
+    const result = expect(send(new PearlClient('key', { timeout: 20 }))).rejects.toMatchObject({ kind: 'timeout' });
+    await jest.advanceTimersByTimeAsync(19);
+    expect(mock.mock.calls[0][1].signal.aborted).toBe(false);
+    await jest.advanceTimersByTimeAsync(1);
+    await result;
+    expect(jest.getTimerCount()).toBe(0);
   });
-
-  // --- Axios Interceptor Tests ---
-
-  describe('Axios Interceptors', () => {
-    let mockRequestInterceptor: jest.Mock;
-    let mockResponseInterceptor: jest.Mock;
-    let client: PearlClient;
-    let mockedAxiosInstance: MockedAxiosInstanceCallable;
-
-    beforeEach(() => {
-      jest.clearAllMocks();
-
-      const mockAxiosInstanceCallable: MockedAxiosInstanceCallable = jest.fn() as unknown as MockedAxiosInstanceCallable;
-      Object.assign(mockAxiosInstanceCallable, {
-        defaults: {},
-        interceptors: {
-          request: { use: jest.fn(), eject: jest.fn() },
-          response: { use: jest.fn(), eject: jest.fn() },
-        },
-        get: jest.fn(), post: jest.fn(), put: jest.fn(), delete: jest.fn(),
-        request: jest.fn(),
-        head: jest.fn(),
-        options: jest.fn(),
-        patch: jest.fn(),
-        isAxiosError: jest.fn(),
-        Axios: jest.fn(),
-        getUri: jest.fn(),
-      });
-      mockedAxios.create.mockReturnValue(mockAxiosInstanceCallable);
-      mockedAxiosInstance = mockAxiosInstanceCallable;
-
-      client = new PearlClient(MOCK_API_KEY);
-
-      const requestUseCall = (mockedAxiosInstance.interceptors.request.use as jest.Mock).mock.calls[0];
-      mockRequestInterceptor = requestUseCall ? requestUseCall[0] : jest.fn();
-
-      const responseUseCall = (mockedAxiosInstance.interceptors.response.use as jest.Mock).mock.calls[0];
-      mockResponseInterceptor = responseUseCall ? responseUseCall[0] : jest.fn();
-
-      const retryPolicyInstance = MockedRetryPolicy.mock.results[0]?.value;
-      if (retryPolicyInstance) {
-        retryPolicyInstance.shouldRetry.mockClear();
-        retryPolicyInstance.calculateRetryDelay.mockClear();
-      }
-    });
-
-    test('request interceptor should initialize __retryCount', async () => {
-      const initialConfig: TestAxiosRequestConfig = { url: '/test', method: 'get', headers: {} as AxiosRequestHeaders };
-      const modifiedConfig = mockRequestInterceptor(initialConfig);
-
-      expect(modifiedConfig.__retryCount).toBe(0);
-    });
-
-    test('response interceptor should retry on retryable status code if shouldRetry is true', async () => {
-      const mockErrorResponse: AxiosError<ProblemDetailsResponse> = {
-        config: { url: '/test', method: 'get', headers: {} as AxiosRequestHeaders, __retryCount: 0 } as TestAxiosRequestConfig,
-        response: { status: 422, data: { Error: { message: 'Retryable error' } } } as AxiosResponse<ProblemDetailsResponse>,
-        isAxiosError: true,
-        name: 'AxiosError',
-        message: 'Request failed with status code 422',
-        toJSON: jest.fn(),
-      };
-
-      const retryPolicyInstance = MockedRetryPolicy.mock.results[0].value;
-      retryPolicyInstance.shouldRetry.mockReturnValueOnce(true).mockReturnValueOnce(false);
-      retryPolicyInstance.calculateRetryDelay.mockReturnValueOnce(10);
-
-      mockedAxiosInstance.mockResolvedValueOnce({ data: 'retried data' });
-
-      const responseErrorInterceptor = (mockedAxiosInstance.interceptors.response.use as jest.Mock).mock.calls[0][1];
-      await expect(responseErrorInterceptor(mockErrorResponse)).resolves.toEqual({ data: 'retried data' });
-
-      expect(retryPolicyInstance.shouldRetry).toHaveBeenCalledTimes(1);
-      expect(retryPolicyInstance.shouldRetry).toHaveBeenCalledWith(0, 422);
-
-      expect(retryPolicyInstance.calculateRetryDelay).toHaveBeenCalledTimes(1);
-      expect(retryPolicyInstance.calculateRetryDelay).toHaveBeenCalledWith(1);
-
-      expect(mockedAxiosInstance).toHaveBeenCalledTimes(1);
-      expect(mockedAxiosInstance).toHaveBeenCalledWith(expect.objectContaining({ __retryCount: 1 }));
-    });
-
-
-    test('response interceptor should reject on non-retryable status code', async () => {
-      const mockErrorResponse: AxiosError<ProblemDetailsResponse> = {
-        config: { url: '/test', method: 'get', headers: {} as AxiosRequestHeaders, __retryCount: 0 } as TestAxiosRequestConfig,
-        response: { status: 400, data: { Error: { message: 'Bad request' } } } as AxiosResponse<ProblemDetailsResponse>,
-        isAxiosError: true,
-        name: 'AxiosError',
-        message: 'Request failed with status code 400',
-        toJSON: jest.fn(),
-      };
-
-      const retryPolicyInstance = MockedRetryPolicy.mock.results[0].value;
-      retryPolicyInstance.shouldRetry.mockReturnValue(false);
-
-      const responseErrorInterceptor = (mockedAxiosInstance.interceptors.response.use as jest.Mock).mock.calls[0][1];
-      await expect(responseErrorInterceptor(mockErrorResponse)).rejects.toBe(mockErrorResponse);
-
-      expect(retryPolicyInstance.shouldRetry).toHaveBeenCalledTimes(1);
-      expect(retryPolicyInstance.shouldRetry).toHaveBeenCalledWith(0, 400);
-      expect(retryPolicyInstance.calculateRetryDelay).not.toHaveBeenCalled();
-      expect(mockedAxiosInstance).not.toHaveBeenCalled();
-    });
-
-    test('response interceptor should reject if max retries reached', async () => {
-      const mockErrorResponse: AxiosError<ProblemDetailsResponse> = {
-        config: { url: '/test', method: 'get', __retryCount: 5, headers: {} as AxiosRequestHeaders } as TestAxiosRequestConfig,
-        response: { status: 422, data: { Error: { message: 'Too many retries' } } } as AxiosResponse<ProblemDetailsResponse>,
-        isAxiosError: true,
-        name: 'AxiosError',
-        message: 'Request failed with status code 422',
-        toJSON: jest.fn(),
-      };
-
-      const retryPolicyInstance = MockedRetryPolicy.mock.results[0].value;
-      retryPolicyInstance.shouldRetry.mockReturnValue(false);
-
-      const responseErrorInterceptor = (mockedAxiosInstance.interceptors.response.use as jest.Mock).mock.calls[0][1];
-      await expect(responseErrorInterceptor(mockErrorResponse)).rejects.toBe(mockErrorResponse);
-
-      expect(retryPolicyInstance.shouldRetry).toHaveBeenCalledTimes(1);
-      expect(retryPolicyInstance.shouldRetry).toHaveBeenCalledWith(5, 422);
-      expect(retryPolicyInstance.calculateRetryDelay).not.toHaveBeenCalled();
-      expect(mockedAxiosInstance).not.toHaveBeenCalled();
-    });
-
-    test('response interceptor should pass through successful responses', async () => {
-      const mockResponse: AxiosResponse = {
-        data: { some: 'data' },
-        status: 200,
-        statusText: 'OK',
-        headers: {} as AxiosRequestHeaders,
-        config: { url: '/test', method: 'get', headers: {} as AxiosRequestHeaders }
-      };
-
-      const result = mockResponseInterceptor(mockResponse);
-
-      expect(result).toBe(mockResponse);
-    });
-
-    test('request interceptor should pass through request errors', async () => {
-        const mockError = new Error('Request setup error');
-        const requestErrorInterceptor = (mockedAxiosInstance.interceptors.request.use as jest.Mock).mock.calls[0][1];
-
-        await expect(requestErrorInterceptor(mockError)).rejects.toBe(mockError);
-    });
+  test('rejects invalid retry settings during construction', () => {
+    expect(() => new PearlClient('key', { retryPolicy: { maxRetries: -1 } })).toThrow('maxRetries');
+  });
+  test('cancellation interrupts retry backoff', async () => {
+    jest.useFakeTimers();
+    mock.mockResolvedValue(new Response('busy', { status: 422 }));
+    const controller = new AbortController();
+    const result = expect(send(new PearlClient('key'), { signal: controller.signal })).rejects.toMatchObject({ kind: 'aborted' });
+    await jest.advanceTimersByTimeAsync(0); controller.abort(); await result;
+    expect(mock).toHaveBeenCalledTimes(1);
+    expect(jest.getTimerCount()).toBe(0);
   });
 });

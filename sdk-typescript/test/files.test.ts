@@ -1,36 +1,20 @@
-import { AxiosInstance, AxiosRequestConfig } from 'axios';
+import { HttpClient, PearlRequestOptions, PearlError } from '../src/core/HttpClient';
+import { File as NodeFile } from 'node:buffer';
 import { Files } from '../src/resources/files';
 import { FILE_PURPOSES, FileObject } from '../src/types';
 
-const mockAxiosInstance: jest.Mocked<AxiosInstance> = {
-    post: jest.fn(),
-    get: jest.fn(),
-    put: jest.fn(),
-    delete: jest.fn(),
-    request: jest.fn(),
-    head: jest.fn(),
-    options: jest.fn(),
-    patch: jest.fn(),
-    isAxiosError: jest.fn(),
-    Axios: jest.fn(),
-    getUri: jest.fn(),
-    defaults: {},
-    interceptors: {
-        request: { use: jest.fn(), eject: jest.fn() },
-        response: { use: jest.fn(), eject: jest.fn() }
-    }
-} as unknown as jest.Mocked<AxiosInstance>;
+const mockHttpClient = { post: jest.fn(), put: jest.fn() } as unknown as jest.Mocked<HttpClient>;
 
 describe('Files', () => {
     let files: Files;
 
     beforeEach(() => {
         jest.clearAllMocks();
-        files = new Files(mockAxiosInstance);
+        files = new Files(mockHttpClient);
     });
 
     test('constructor initializes with the provided apiClient', () => {
-        expect(files['apiClient']).toBe(mockAxiosInstance);
+        expect(files['apiClient']).toBe(mockHttpClient);
     });
 
     describe('create', () => {
@@ -43,7 +27,7 @@ describe('Files', () => {
         };
 
         test('uploads a Buffer and defaults purpose to attachment', async () => {
-            mockAxiosInstance.post.mockResolvedValueOnce({ data: mockFileObject });
+            mockHttpClient.post.mockResolvedValueOnce({ data: mockFileObject });
 
             const result = await files.create({
                 file: Buffer.from('hello'),
@@ -52,9 +36,9 @@ describe('Files', () => {
             });
 
             expect(result).toEqual(mockFileObject);
-            expect(mockAxiosInstance.post).toHaveBeenCalledTimes(1);
+            expect(mockHttpClient.post).toHaveBeenCalledTimes(1);
 
-            const [url, body, config] = mockAxiosInstance.post.mock.calls[0];
+            const [url, body, config] = mockHttpClient.post.mock.calls[0];
             expect(url).toBe('/files');
             expect(body).toBeInstanceOf(FormData);
 
@@ -65,13 +49,11 @@ describe('Files', () => {
             expect(uploadedFile).toBeInstanceOf(Blob);
             expect((uploadedFile as File).name).toBe('hello.txt');
 
-            expect((config as AxiosRequestConfig).headers).toMatchObject({
-                'Content-Type': 'multipart/form-data'
-            });
+            expect(config).toBeUndefined();
         });
 
         test('uploads a Blob and forwards explicit purpose', async () => {
-            mockAxiosInstance.post.mockResolvedValueOnce({ data: mockFileObject });
+            mockHttpClient.post.mockResolvedValueOnce({ data: mockFileObject });
 
             const blob = new Blob(['hi'], { type: 'text/plain' });
             await files.create({
@@ -81,7 +63,7 @@ describe('Files', () => {
                 filename: 'custom.txt'
             });
 
-            const [, body] = mockAxiosInstance.post.mock.calls[0];
+            const [, body] = mockHttpClient.post.mock.calls[0];
             const form = body as FormData;
             expect(form.get('purpose')).toBe('attachment');
             expect(form.get('sessionId')).toBe('sess-2');
@@ -89,26 +71,25 @@ describe('Files', () => {
             expect(uploaded.name).toBe('custom.txt');
         });
 
-        test('merges requestConfig headers with multipart Content-Type', async () => {
-            mockAxiosInstance.post.mockResolvedValueOnce({ data: mockFileObject });
+        test('forwards request options to the transport', async () => {
+            mockHttpClient.post.mockResolvedValueOnce({ data: mockFileObject });
 
             await files.create(
                 { file: Buffer.from('x'), sessionId: 's', filename: 'x.bin' },
                 { headers: { 'X-Trace': 'abc' }, timeout: 123 }
             );
 
-            const [, , config] = mockAxiosInstance.post.mock.calls[0];
-            const cfg = config as AxiosRequestConfig;
+            const [, , config] = mockHttpClient.post.mock.calls[0];
+            const cfg = config as PearlRequestOptions;
             expect(cfg.timeout).toBe(123);
             expect(cfg.headers).toMatchObject({
-                'X-Trace': 'abc',
-                'Content-Type': 'multipart/form-data'
+                'X-Trace': 'abc'
             });
         });
 
         test('propagates errors from apiClient.post', async () => {
             const err = new Error('boom');
-            mockAxiosInstance.post.mockRejectedValueOnce(err);
+            mockHttpClient.post.mockRejectedValueOnce(err);
 
             await expect(
                 files.create({ file: Buffer.from('x'), sessionId: 's', filename: 'x' })
@@ -122,7 +103,7 @@ describe('Files', () => {
         });
 
         test('uploads a Uint8Array and applies contentType on the Blob', async () => {
-            mockAxiosInstance.post.mockResolvedValueOnce({ data: mockFileObject });
+            mockHttpClient.post.mockResolvedValueOnce({ data: mockFileObject });
 
             const data = new Uint8Array([1, 2, 3, 4]);
             await files.create({
@@ -132,7 +113,7 @@ describe('Files', () => {
                 contentType: 'application/octet-stream'
             });
 
-            const [, body] = mockAxiosInstance.post.mock.calls[0];
+            const [, body] = mockHttpClient.post.mock.calls[0];
             const form = body as FormData;
             const uploaded = form.get('file') as File;
             expect(uploaded).toBeInstanceOf(Blob);
@@ -141,8 +122,16 @@ describe('Files', () => {
             expect(uploaded.size).toBe(4);
         });
 
+        test('preserves a File name when no filename override is supplied', async () => {
+            mockHttpClient.post.mockResolvedValueOnce({ data: mockFileObject });
+            const file = new NodeFile(['hello'], 'original.txt', { type: 'text/plain' });
+            await files.create({ file: file as unknown as Blob, sessionId: 's' });
+            const form = mockHttpClient.post.mock.calls[0][1] as FormData;
+            expect((form.get('file') as File).name).toBe('original.txt');
+        });
+
         test('uploads an ArrayBuffer', async () => {
-            mockAxiosInstance.post.mockResolvedValueOnce({ data: mockFileObject });
+            mockHttpClient.post.mockResolvedValueOnce({ data: mockFileObject });
 
             const buffer = new Uint8Array([9, 8, 7]).buffer;
             await files.create({
@@ -151,7 +140,7 @@ describe('Files', () => {
                 filename: 'ab.bin'
             });
 
-            const [, body] = mockAxiosInstance.post.mock.calls[0];
+            const [, body] = mockHttpClient.post.mock.calls[0];
             const form = body as FormData;
             const uploaded = form.get('file') as File;
             expect(uploaded).toBeInstanceOf(Blob);
@@ -159,15 +148,15 @@ describe('Files', () => {
         });
 
         test('posts to /files endpoint', async () => {
-            mockAxiosInstance.post.mockResolvedValueOnce({ data: mockFileObject });
+            mockHttpClient.post.mockResolvedValueOnce({ data: mockFileObject });
 
             await files.create({ file: Buffer.from('x'), sessionId: 's', filename: 'x' });
 
-            expect(mockAxiosInstance.post.mock.calls[0][0]).toBe('/files');
+            expect(mockHttpClient.post.mock.calls[0][0]).toBe('/files');
         });
 
         test('sends sessionId as camelCase form field, not session_id', async () => {
-            mockAxiosInstance.post.mockResolvedValueOnce({ data: mockFileObject });
+            mockHttpClient.post.mockResolvedValueOnce({ data: mockFileObject });
 
             await files.create({
                 file: Buffer.from('x'),
@@ -175,24 +164,24 @@ describe('Files', () => {
                 filename: 'x'
             });
 
-            const [, body] = mockAxiosInstance.post.mock.calls[0];
+            const [, body] = mockHttpClient.post.mock.calls[0];
             const form = body as FormData;
             expect(form.get('sessionId')).toBe('abc-123');
             expect(form.get('session_id')).toBeNull();
         });
 
         test('defaults purpose to attachment when omitted', async () => {
-            mockAxiosInstance.post.mockResolvedValueOnce({ data: mockFileObject });
+            mockHttpClient.post.mockResolvedValueOnce({ data: mockFileObject });
 
             await files.create({ file: Buffer.from('x'), sessionId: 's', filename: 'x' });
 
-            const [, body] = mockAxiosInstance.post.mock.calls[0];
+            const [, body] = mockHttpClient.post.mock.calls[0];
             const form = body as FormData;
             expect(form.get('purpose')).toBe('attachment');
         });
 
         test('forwards an arbitrary purpose string unchanged', async () => {
-            mockAxiosInstance.post.mockResolvedValueOnce({ data: mockFileObject });
+            mockHttpClient.post.mockResolvedValueOnce({ data: mockFileObject });
 
             await files.create({
                 file: Buffer.from('x'),
@@ -201,17 +190,17 @@ describe('Files', () => {
                 filename: 'x'
             });
 
-            const [, body] = mockAxiosInstance.post.mock.calls[0];
+            const [, body] = mockHttpClient.post.mock.calls[0];
             const form = body as FormData;
             expect(form.get('purpose')).toBe('custom-purpose');
         });
 
         test('uses default filename "file" when none provided for a Buffer', async () => {
-            mockAxiosInstance.post.mockResolvedValueOnce({ data: mockFileObject });
+            mockHttpClient.post.mockResolvedValueOnce({ data: mockFileObject });
 
             await files.create({ file: Buffer.from('x'), sessionId: 's' });
 
-            const [, body] = mockAxiosInstance.post.mock.calls[0];
+            const [, body] = mockHttpClient.post.mock.calls[0];
             const form = body as FormData;
             const uploaded = form.get('file') as File;
             expect(uploaded.name).toBe('file');
@@ -225,7 +214,7 @@ describe('Files', () => {
                 purpose: 'attachment',
                 createdAt: 1700000000
             };
-            mockAxiosInstance.post.mockResolvedValueOnce({ data: serverResponse });
+            mockHttpClient.post.mockResolvedValueOnce({ data: serverResponse });
 
             const result = await files.create({
                 file: Buffer.from('content'),
@@ -242,9 +231,9 @@ describe('Files', () => {
         });
 
         test('does not mutate the caller-provided requestConfig', async () => {
-            mockAxiosInstance.post.mockResolvedValueOnce({ data: mockFileObject });
+            mockHttpClient.post.mockResolvedValueOnce({ data: mockFileObject });
 
-            const userConfig: AxiosRequestConfig = {
+            const userConfig: PearlRequestOptions = {
                 headers: { 'X-Trace': 'abc' },
                 timeout: 5000
             };
@@ -258,18 +247,15 @@ describe('Files', () => {
             expect(userConfig).toEqual(userConfigSnapshot);
         });
 
-        test('propagates axios errors with response data', async () => {
-            const axiosErr: any = new Error('Request failed with status code 400');
-            axiosErr.response = {
-                status: 400,
-                data: { Error: { message: 'Invalid file', code: 'bad_request' } }
-            };
-            mockAxiosInstance.post.mockRejectedValueOnce(axiosErr);
+        test('propagates HTTP errors with response data', async () => {
+            const data = { Error: { message: 'Invalid file', code: 'bad_request' } };
+            const httpErr = new PearlError('Invalid file', 'http', { status: 400, data });
+            mockHttpClient.post.mockRejectedValueOnce(httpErr);
 
             await expect(
                 files.create({ file: Buffer.from('x'), sessionId: 's', filename: 'x' })
             ).rejects.toMatchObject({
-                response: { status: 400 }
+                kind: 'http', status: 400, data
             });
         });
     });

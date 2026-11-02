@@ -3,9 +3,8 @@
 // 2. Transpile and run:
 //    npx ts-node examples/chat-completion-example.ts
 
-import { PearlClient, CONVERSATION_MODES, ChatMessage } from 'pearl-sdk';
+import { PearlError, PearlClient, CONVERSATION_MODES, ChatMessage } from '../src';
 import { v4 as uuidv4 } from 'uuid'; // Ensure uuid is installed: npm install uuid
-import axios from 'axios';
 
 // --- IMPORTANT: Configure your API Key ---
 // Replace 'YOUR_PEARL_API_KEY' with your actual Pearl API Key.
@@ -49,19 +48,17 @@ async function runChatCompletionExample() {
     console.log("\n--- Chat Completion API Response ---");
     console.log("Assistant's message:", chatResponse.choices[0].message.content);
 
-  } catch (error: any) {
+  } catch (error) {
     console.error("\n--- Chat Completion API Error ---");
-    // Axios errors are handled by PearlClient's interceptors, but this catch
-    // demonstrates how to handle final rejections from the SDK call.
-    if (axios.isAxiosError(error)) {
+    if (error instanceof PearlError) {
       console.error("Error message:", error.message);
-      if (error.response) {
-        console.error("Status:", error.response.status);
-        console.error("Data:", JSON.stringify(error.response.data, null, 2));
-      } else if (error.request) {
+      if (error.kind === 'http') {
+        console.error("Status:", error.status);
+        console.error("Data:", JSON.stringify(error.data, null, 2));
+      } else if (error.kind === 'network') {
         console.error("No response received from server.");
       } else {
-        console.error("Error setting up request.");
+        console.error("Request stopped:", error.kind);
       }
     } else {
       console.error("An unexpected error occurred:", error);

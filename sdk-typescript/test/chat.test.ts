@@ -1,25 +1,8 @@
-import axios, { AxiosInstance, AxiosResponse, AxiosRequestConfig } from 'axios';
+import { HttpClient, PearlRequestOptions } from '../src/core/HttpClient';
 import { Chat } from '../src/resources/chat';
 import { ChatCompletionRequest, ChatCompletionResponse, ChatMessage } from '../src/types';
 
-const mockAxiosInstance: jest.Mocked<AxiosInstance> = {
-  post: jest.fn(),
-  get: jest.fn(),
-  put: jest.fn(),
-  delete: jest.fn(),
-  request: jest.fn(),
-  head: jest.fn(),
-  options: jest.fn(),
-  patch: jest.fn(),
-  isAxiosError: jest.fn(),
-  Axios: jest.fn(),
-  getUri: jest.fn(),
-  defaults: {},
-  interceptors: {
-    request: { use: jest.fn(), eject: jest.fn() },
-    response: { use: jest.fn(), eject: jest.fn() },
-  },
-} as unknown as jest.Mocked<AxiosInstance>;
+const mockHttpClient = { post: jest.fn(), put: jest.fn() } as unknown as jest.Mocked<HttpClient>;
 
 
 describe('Chat', () => {
@@ -27,13 +10,13 @@ describe('Chat', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    chat = new Chat(mockAxiosInstance);
+    chat = new Chat(mockHttpClient);
   });
 
   // --- Constructor Test ---
   test('constructor should initialize with the provided apiClient', () => {
     // Access private property to verify initialization
-    expect(chat['apiClient']).toBe(mockAxiosInstance);
+    expect(chat['apiClient']).toBe(mockHttpClient);
   });
 
   // --- sendCompletion Method Tests ---
@@ -61,36 +44,36 @@ describe('Chat', () => {
     };
 
     test('should call apiClient.post with correct endpoint and payload', async () => {
-      // Mock the successful response from axios.post
-      mockAxiosInstance.post.mockResolvedValueOnce({ data: mockResponseData });
+      // Mock the successful response from HTTP post
+      mockHttpClient.post.mockResolvedValueOnce({ data: mockResponseData });
 
       const response = await chat.sendCompletion(testMessages, testSessionId, testMode, testModel);
 
       // Expect apiClient.post to have been called once
-      expect(mockAxiosInstance.post).toHaveBeenCalledTimes(1);
+      expect(mockHttpClient.post).toHaveBeenCalledTimes(1);
       // Expect it to be called with the correct endpoint and request payload
-      expect(mockAxiosInstance.post).toHaveBeenCalledWith('/chat/completions', {
+      expect(mockHttpClient.post).toHaveBeenCalledWith('/chat/completions', {
         model: testModel,
         messages: testMessages,
         metadata: { mode: testMode, sessionId: testSessionId }
       }, undefined);
 
-      // Expect the method to return the data part of the Axios response
+      // Expect the method to return the data part of the HTTP response
       expect(response).toEqual(mockResponseData);
     });
 
     test('should call apiClient.post with correct endpoint, payload, and requestConfig', async () => {
-      const mockRequestConfig: AxiosRequestConfig = {
+      const mockRequestConfig: PearlRequestOptions = {
         headers: { 'X-Custom-Header': 'test-value' },
         timeout: 1000,
       };
 
-      mockAxiosInstance.post.mockResolvedValueOnce({ data: mockResponseData });
+      mockHttpClient.post.mockResolvedValueOnce({ data: mockResponseData });
 
       const response = await chat.sendCompletion(testMessages, testSessionId, testMode, testModel, mockRequestConfig);
 
-      expect(mockAxiosInstance.post).toHaveBeenCalledTimes(1);
-      expect(mockAxiosInstance.post).toHaveBeenCalledWith('/chat/completions', {
+      expect(mockHttpClient.post).toHaveBeenCalledTimes(1);
+      expect(mockHttpClient.post).toHaveBeenCalledWith('/chat/completions', {
         model: testModel,
         messages: testMessages,
         metadata: { mode: testMode, sessionId: testSessionId }
@@ -99,7 +82,7 @@ describe('Chat', () => {
     });
 
     test('should include attachments on messages when provided', async () => {
-      mockAxiosInstance.post.mockResolvedValueOnce({ data: mockResponseData });
+      mockHttpClient.post.mockResolvedValueOnce({ data: mockResponseData });
 
       const messagesWithAttachments: ChatMessage[] = [
         { role: 'user', content: "What's on the image?", attachments: ['file-123', 'file-456'] }
@@ -107,7 +90,7 @@ describe('Chat', () => {
 
       await chat.sendCompletion(messagesWithAttachments, testSessionId, testMode, testModel);
 
-      expect(mockAxiosInstance.post).toHaveBeenCalledWith('/chat/completions', {
+      expect(mockHttpClient.post).toHaveBeenCalledWith('/chat/completions', {
         model: testModel,
         messages: messagesWithAttachments,
         metadata: { mode: testMode, sessionId: testSessionId }
@@ -116,18 +99,18 @@ describe('Chat', () => {
 
     test('should propagate errors from apiClient.post', async () => {
       const mockError = new Error('Network error');
-      mockAxiosInstance.post.mockRejectedValueOnce(mockError);
+      mockHttpClient.post.mockRejectedValueOnce(mockError);
 
       await expect(chat.sendCompletion(testMessages, testSessionId, testMode, testModel)).rejects.toBe(mockError);
     });
 
     test('should merge extra metadata and preserve mode/sessionId precedence', async () => {
-      mockAxiosInstance.post.mockResolvedValueOnce({ data: mockResponseData });
+      mockHttpClient.post.mockResolvedValueOnce({ data: mockResponseData });
 
       const extra = { custom: 'value', mode: 'override-mode', sessionId: 'override-session' };
       await chat.sendCompletion(testMessages, testSessionId, testMode, testModel, undefined, extra);
 
-      expect(mockAxiosInstance.post).toHaveBeenCalledWith('/chat/completions', {
+      expect(mockHttpClient.post).toHaveBeenCalledWith('/chat/completions', {
         model: testModel,
         messages: testMessages,
         metadata: { custom: 'value', mode: testMode, sessionId: testSessionId }
@@ -135,13 +118,13 @@ describe('Chat', () => {
     });
 
     test('should send both requestConfig and extra metadata', async () => {
-      mockAxiosInstance.post.mockResolvedValueOnce({ data: mockResponseData });
-      const mockRequestConfig: AxiosRequestConfig = { timeout: 500 };
+      mockHttpClient.post.mockResolvedValueOnce({ data: mockResponseData });
+      const mockRequestConfig: PearlRequestOptions = { timeout: 500 };
       const extra = { traceId: 'abc123' };
 
       await chat.sendCompletion(testMessages, testSessionId, testMode, testModel, mockRequestConfig, extra);
 
-      expect(mockAxiosInstance.post).toHaveBeenCalledWith('/chat/completions', {
+      expect(mockHttpClient.post).toHaveBeenCalledWith('/chat/completions', {
         model: testModel,
         messages: testMessages,
         metadata: { traceId: 'abc123', mode: testMode, sessionId: testSessionId }
