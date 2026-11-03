@@ -1,5 +1,5 @@
 // To run this example:
-// 1. Ensure you have the SDK installed: npm install pearl-sdk
+// 1. From the sdk-typescript folder, install dependencies: npm ci
 // 2. Transpile and run:
 //    npx ts-node examples/webhook-management-example.ts
 

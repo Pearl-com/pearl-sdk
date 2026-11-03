@@ -16,7 +16,7 @@ A robust and easy-to-use SDK for interacting with the Pearl API, providing strea
 
 ## 📦 Installation
 
-Requires Node.js 18 or later. Install with npm:
+Requires Node.js 20 or later. Install with npm:
 
 ```bash
 npm install @pearl.com/pearl-api-client-sdk
@@ -271,7 +271,7 @@ async function registerWebhook() {
 registerWebhook();
 ```
 
-The error kinds are `http`, `network`, `timeout`, and `aborted`. Network errors also include the underlying error in `cause`.
+The error kinds are `http`, `network`, `timeout`, and `aborted`. Network errors include the underlying error in `cause`, and aborted requests include the reason passed to `AbortController.abort()`.
 
 ### Response and retry behavior
 
@@ -288,7 +288,7 @@ git clone https://github.com/Pearl-com/pearl-sdk.git
 cd pearl-sdk/sdk-typescript
 ```
 
-Install dependencies on a workstation with access to the Sinopia registry URLs in the lockfile:
+Install dependencies:
 
 ```bash
 npm ci

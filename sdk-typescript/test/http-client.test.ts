@@ -2,15 +2,25 @@ import { PearlClient, PearlError, PearlRequestOptions } from '../src';
 
 const send = (client: PearlClient, options: PearlRequestOptions = {}) => client.chat.sendCompletion([], 'session', undefined, undefined, options);
 
-describe('fetch transport', () => {
+describe('HttpClient (fetch transport)', () => {
   let mock: jest.SpyInstance;
-  beforeEach(() => { mock = jest.spyOn(globalThis, 'fetch'); });
-  afterEach(() => { jest.restoreAllMocks(); jest.useRealTimers(); });
+
+  beforeEach(() => {
+    mock = jest.spyOn(globalThis, 'fetch');
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+    jest.useRealTimers();
+  });
+
 
   test.each([0, -1, NaN, Infinity, 2_147_483_648])('rejects invalid timeout %s', timeout => {
     expect(() => new PearlClient('key', { timeout })).toThrow();
   });
-  test('requires an API key', () => { expect(() => new PearlClient('')).toThrow(); });
+  test('requires an API key', () => {
+    expect(() => new PearlClient('')).toThrow();
+  });
   test.each(['https://example.com/api/v1', 'https://example.com/api/v1/'])('preserves base path %s', async baseUrl => {
     mock.mockResolvedValue(new Response('{"id":"ok"}'));
     const headers = { authorization: 'Bearer override', 'X-Trace': 'test' };
@@ -28,13 +38,11 @@ describe('fetch transport', () => {
   });
   test('exposes HTTP error details without request credentials', async () => {
     mock.mockResolvedValue(new Response('{"message":"bad"}', { status: 400, headers: { 'X-Trace': '123' } }));
-    try { await send(new PearlClient('secret')); throw new Error('Expected failure'); }
-    catch (error) {
-      expect(error).toBeInstanceOf(PearlError);
-      expect(error).toMatchObject({ kind: 'http', status: 400, data: { message: 'bad' } });
-      expect((error as PearlError).headers?.get('x-trace')).toBe('123');
-      expect(JSON.stringify(error)).not.toContain('secret');
-    }
+    const error = await send(new PearlClient('secret')).catch((e: unknown) => e);
+    expect(error).toBeInstanceOf(PearlError);
+    expect(error).toMatchObject({ kind: 'http', status: 400, data: { message: 'bad' } });
+    expect((error as PearlError).headers?.get('x-trace')).toBe('123');
+    expect(JSON.stringify(error)).not.toContain('secret');
     expect(mock).toHaveBeenCalledTimes(1);
   });
   test('network failure is not retried', async () => {
@@ -53,7 +61,8 @@ describe('fetch transport', () => {
     expect(mock).toHaveBeenCalledTimes(enabled ? 2 : 1);
   });
   test('pre-aborted requests never fetch', async () => {
-    const controller = new AbortController(); controller.abort();
+    const controller = new AbortController();
+    controller.abort();
     await expect(send(new PearlClient('key'), { signal: controller.signal })).rejects.toMatchObject({ kind: 'aborted' });
     expect(mock).not.toHaveBeenCalled();
   });
@@ -61,7 +70,8 @@ describe('fetch transport', () => {
     jest.useFakeTimers();
     mock.mockImplementation((_url, init) => new Promise((_resolve, reject) => init.signal.addEventListener('abort', () => reject(new Error('aborted')))));
     const result = expect(send(new PearlClient('key'), { timeout: 10 })).rejects.toMatchObject({ kind: 'timeout' });
-    await jest.advanceTimersByTimeAsync(10); await result;
+    await jest.advanceTimersByTimeAsync(10);
+    await result;
     expect(jest.getTimerCount()).toBe(0);
   });
   test.each([0, NaN, Infinity, 2_147_483_648])('rejects invalid per-request timeout %s before fetch', async timeout => {
@@ -161,8 +171,20 @@ describe('fetch transport', () => {
     mock.mockResolvedValue(new Response('busy', { status: 422 }));
     const controller = new AbortController();
     const result = expect(send(new PearlClient('key'), { signal: controller.signal })).rejects.toMatchObject({ kind: 'aborted' });
-    await jest.advanceTimersByTimeAsync(0); controller.abort(); await result;
+    await jest.advanceTimersByTimeAsync(0);
+    controller.abort();
+    await result;
     expect(mock).toHaveBeenCalledTimes(1);
     expect(jest.getTimerCount()).toBe(0);
+  });
+  test('keeps the caller abort reason as the cause', async () => {
+    const reason = new Error('caller gave up');
+    const controller = new AbortController();
+    mock.mockImplementation((_url, init) => new Promise((_resolve, reject) => {
+      init.signal.addEventListener('abort', () => reject(new Error('aborted')), { once: true });
+    }));
+    const result = send(new PearlClient('key'), { signal: controller.signal });
+    controller.abort(reason);
+    await expect(result).rejects.toMatchObject({ kind: 'aborted', cause: reason });
   });
 });

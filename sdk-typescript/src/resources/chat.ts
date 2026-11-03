@@ -18,7 +18,7 @@ export class Chat {
    * @param sessionId Unique identifier for the chat session.
    * @param mode The conversation mode (optional, defaults to PEARL_AI).
    * @param model The model to use (optional, defaults to "pearl-ai").
-   * @param requestConfig Optional request configuration.
+   * @param options Optional request options (headers, timeout, signal).
    * @returns A Promise that resolves to the ChatCompletionResponse on success.
    * @throws PearlError if the API call fails or a network issue occurs.
    */
@@ -27,7 +27,7 @@ export class Chat {
     sessionId: string,
     mode: string = CONVERSATION_MODES.PEARL_AI,
     model: string = DEFAULT_MODEL,
-    requestConfig?: PearlRequestOptions,
+    options?: PearlRequestOptions,
     extraMetadata?: Record<string, string>
   ): Promise<ChatCompletionResponse> {
     // Construct the request object internally
@@ -44,12 +44,6 @@ export class Chat {
       metadata
     };
 
-    const response = await this.apiClient.post<ChatCompletionResponse>(
-      '/chat/completions',
-      request,
-      requestConfig
-    );
-
-    return response.data;
+    return this.apiClient.post<ChatCompletionResponse>('/chat/completions', request, options);
   }
 }

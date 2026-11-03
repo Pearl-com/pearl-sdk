@@ -9,7 +9,7 @@
 // with the same sessionId before calling client.files.create.
 //
 // To run this example:
-// 1. Ensure you have the SDK installed: npm install pearl-sdk
+// 1. From the sdk-typescript folder, install dependencies: npm ci
 // 2. Set your API key and IMAGE_PATH below
 // 3. Transpile and run:
 //    npx ts-node examples/attachment-example.ts

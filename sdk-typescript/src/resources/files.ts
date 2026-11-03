@@ -2,7 +2,7 @@ import { HttpClient, PearlRequestOptions } from '../core/HttpClient';
 import { FileObject, FILE_PURPOSES, FilePurpose } from '../types';
 
 /**
- * Value types accepted for a file upload. On Node.js (18+) you can pass a
+ * Value types accepted for a file upload. On Node.js (20+) you can pass a
  * `Buffer`, `Uint8Array`, `ArrayBuffer`, or a `Blob`. In the browser,
  * `Blob` or `File` instances are supported.
  */
@@ -44,13 +44,13 @@ export class Files {
      * `attachments` field on `ChatMessage`.
      *
      * @param params Upload parameters including the file and its session id.
-     * @param requestConfig Optional request configuration.
+     * @param options Optional request options (headers, timeout, signal).
      * @returns A Promise that resolves to the uploaded FileObject.
      * @throws PearlError if the API call fails or a network issue occurs.
      */
     public async create(
         params: FileCreateParams,
-        requestConfig?: PearlRequestOptions
+        options?: PearlRequestOptions
     ): Promise<FileObject> {
         const {
             file,
@@ -64,13 +64,7 @@ export class Files {
         formData.append('purpose', String(purpose));
         formData.append('sessionId', sessionId);
 
-        const response = await this.apiClient.post<FileObject>(
-            '/files',
-            formData,
-            requestConfig
-        );
-
-        return response.data;
+        return this.apiClient.post<FileObject>('/files', formData, options);
     }
 
     private buildFormData(

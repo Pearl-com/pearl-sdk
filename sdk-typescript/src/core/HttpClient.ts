@@ -1,3 +1,4 @@
+import { PearlError } from './PearlError';
 import { RetryPolicy } from './RetryPolicy';
 
 export interface PearlRequestOptions {
@@ -7,26 +8,6 @@ export interface PearlRequestOptions {
   signal?: AbortSignal;
 }
 
-export class PearlError extends Error {
-  readonly name = 'PearlError';
-  readonly status?: number;
-  readonly data?: unknown;
-  readonly headers?: Headers;
-  readonly cause?: unknown;
-
-  constructor(
-    message: string,
-    public readonly kind: 'http' | 'network' | 'timeout' | 'aborted',
-    details: { status?: number; data?: unknown; headers?: Headers; cause?: unknown } = {},
-  ) {
-    super(message);
-    this.status = details.status;
-    this.data = details.data;
-    this.headers = details.headers;
-    this.cause = details.cause;
-  }
-}
-
 export function validateTimeout(timeout: number): void {
   // Larger values overflow Node's timer and fire almost immediately.
   if (!Number.isFinite(timeout) || timeout <= 0 || timeout > 2_147_483_647) {
@@ -34,25 +15,30 @@ export function validateTimeout(timeout: number): void {
   }
 }
 
-function aborted(): PearlError {
-  return new PearlError('Request aborted.', 'aborted');
+/** Keeps the caller's abort reason (for example from AbortSignal.timeout) as the cause. */
+function aborted(signal: AbortSignal): PearlError {
+  return new PearlError('Request aborted.', 'aborted', { cause: signal.reason });
 }
 
 function wait(delay: number, signal?: AbortSignal): Promise<void> {
   return new Promise((resolve, reject) => {
-    if (signal?.aborted) {
-      reject(aborted());
+    if (!signal) {
+      setTimeout(resolve, delay);
+      return;
+    }
+    if (signal.aborted) {
+      reject(aborted(signal));
       return;
     }
     const cancel = () => {
       clearTimeout(timer);
-      reject(aborted());
+      reject(aborted(signal));
     };
     const timer = setTimeout(() => {
-      signal?.removeEventListener('abort', cancel);
+      signal.removeEventListener('abort', cancel);
       resolve();
     }, delay);
-    signal?.addEventListener('abort', cancel, { once: true });
+    signal.addEventListener('abort', cancel, { once: true });
   });
 }
 
@@ -65,14 +51,14 @@ export class HttpClient {
     private readonly retryPolicy: RetryPolicy,
   ) {}
 
-  post<T>(path: string, body: unknown, options?: PearlRequestOptions): Promise<{ data: T }> {
+  post<T>(path: string, body: unknown, options?: PearlRequestOptions): Promise<T> {
     return this.request<T>('POST', path, body, options);
   }
-  put<T>(path: string, body: unknown, options?: PearlRequestOptions): Promise<{ data: T }> {
+  put<T>(path: string, body: unknown, options?: PearlRequestOptions): Promise<T> {
     return this.request<T>('PUT', path, body, options);
   }
 
-  private async request<T>(method: string, path: string, body: unknown, options: PearlRequestOptions = {}): Promise<{ data: T }> {
+  private async request<T>(method: string, path: string, body: unknown, options: PearlRequestOptions = {}): Promise<T> {
     const { signal } = options;
     const timeout = options.timeout ?? this.timeout;
     validateTimeout(timeout);
@@ -86,10 +72,10 @@ export class HttpClient {
     const payload = multipart ? body : JSON.stringify(body);
 
     for (let retries = 0; ; retries++) {
-      if (signal?.aborted) throw aborted();
+      if (signal?.aborted) throw aborted(signal);
 
       const controller = new AbortController();
-      const cancel = () => controller.abort(aborted());
+      const cancel = () => controller.abort(aborted(signal as AbortSignal));
       signal?.addEventListener('abort', cancel, { once: true });
       const timer = setTimeout(() => {
         controller.abort(new PearlError('Request timed out.', 'timeout'));
@@ -107,7 +93,7 @@ export class HttpClient {
             // Keep plain-text and malformed JSON responses as text.
           }
         }
-        if (response.ok) return { data: data as T };
+        if (response.ok) return data as T;
         failure = new PearlError(`Request failed with status ${response.status}.`, 'http', {
           status: response.status,
           data,

@@ -78,17 +78,17 @@ describe('Webhooks', () => {
     const registerRequest: WebhookEndpointRequest = { endpoint: 'https://example.com/webhook' };
 
     test('should call apiClient.post with correct endpoint and request', async () => {
-      mockHttpClient.post.mockResolvedValueOnce({ data: undefined });
+      mockHttpClient.post.mockResolvedValueOnce(undefined);
       await webhooks.register(registerRequest);
       expect(mockHttpClient.post).toHaveBeenCalledTimes(1);
       expect(mockHttpClient.post).toHaveBeenCalledWith('/webhook', registerRequest, undefined);
     });
 
-    test('should call apiClient.post with requestConfig', async () => {
-      const requestConfig: PearlRequestOptions = { headers: { 'X-Test': 'Header' } };
-      mockHttpClient.post.mockResolvedValueOnce({ data: undefined });
-      await webhooks.register(registerRequest, requestConfig);
-      expect(mockHttpClient.post).toHaveBeenCalledWith('/webhook', registerRequest, requestConfig);
+    test('should call apiClient.post with options', async () => {
+      const options: PearlRequestOptions = { headers: { 'X-Test': 'Header' } };
+      mockHttpClient.post.mockResolvedValueOnce(undefined);
+      await webhooks.register(registerRequest, options);
+      expect(mockHttpClient.post).toHaveBeenCalledWith('/webhook', registerRequest, options);
     });
 
     test('should propagate errors from apiClient.post', async () => {
@@ -103,17 +103,17 @@ describe('Webhooks', () => {
     const updateRequest: WebhookEndpointRequest = { endpoint: 'https://example.com/updated-webhook' };
 
     test('should call apiClient.put with correct endpoint and request', async () => {
-      mockHttpClient.put.mockResolvedValueOnce({ data: undefined });
+      mockHttpClient.put.mockResolvedValueOnce(undefined);
       await webhooks.update(updateRequest);
       expect(mockHttpClient.put).toHaveBeenCalledTimes(1);
       expect(mockHttpClient.put).toHaveBeenCalledWith('/webhook', updateRequest, undefined);
     });
 
-    test('should call apiClient.put with requestConfig', async () => {
-      const requestConfig: PearlRequestOptions = { timeout: 5000 };
-      mockHttpClient.put.mockResolvedValueOnce({ data: undefined });
-      await webhooks.update(updateRequest, requestConfig);
-      expect(mockHttpClient.put).toHaveBeenCalledWith('/webhook', updateRequest, requestConfig);
+    test('should call apiClient.put with options', async () => {
+      const options: PearlRequestOptions = { timeout: 5000 };
+      mockHttpClient.put.mockResolvedValueOnce(undefined);
+      await webhooks.update(updateRequest, options);
+      expect(mockHttpClient.put).toHaveBeenCalledWith('/webhook', updateRequest, options);
     });
 
     test('should propagate errors from apiClient.put', async () => {

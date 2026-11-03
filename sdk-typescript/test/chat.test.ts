@@ -45,7 +45,7 @@ describe('Chat', () => {
 
     test('should call apiClient.post with correct endpoint and payload', async () => {
       // Mock the successful response from HTTP post
-      mockHttpClient.post.mockResolvedValueOnce({ data: mockResponseData });
+      mockHttpClient.post.mockResolvedValueOnce(mockResponseData);
 
       const response = await chat.sendCompletion(testMessages, testSessionId, testMode, testModel);
 
@@ -62,27 +62,27 @@ describe('Chat', () => {
       expect(response).toEqual(mockResponseData);
     });
 
-    test('should call apiClient.post with correct endpoint, payload, and requestConfig', async () => {
-      const mockRequestConfig: PearlRequestOptions = {
+    test('should call apiClient.post with correct endpoint, payload, and options', async () => {
+      const mockOptions: PearlRequestOptions = {
         headers: { 'X-Custom-Header': 'test-value' },
         timeout: 1000,
       };
 
-      mockHttpClient.post.mockResolvedValueOnce({ data: mockResponseData });
+      mockHttpClient.post.mockResolvedValueOnce(mockResponseData);
 
-      const response = await chat.sendCompletion(testMessages, testSessionId, testMode, testModel, mockRequestConfig);
+      const response = await chat.sendCompletion(testMessages, testSessionId, testMode, testModel, mockOptions);
 
       expect(mockHttpClient.post).toHaveBeenCalledTimes(1);
       expect(mockHttpClient.post).toHaveBeenCalledWith('/chat/completions', {
         model: testModel,
         messages: testMessages,
         metadata: { mode: testMode, sessionId: testSessionId }
-      }, mockRequestConfig);
+      }, mockOptions);
       expect(response).toEqual(mockResponseData);
     });
 
     test('should include attachments on messages when provided', async () => {
-      mockHttpClient.post.mockResolvedValueOnce({ data: mockResponseData });
+      mockHttpClient.post.mockResolvedValueOnce(mockResponseData);
 
       const messagesWithAttachments: ChatMessage[] = [
         { role: 'user', content: "What's on the image?", attachments: ['file-123', 'file-456'] }
@@ -105,7 +105,7 @@ describe('Chat', () => {
     });
 
     test('should merge extra metadata and preserve mode/sessionId precedence', async () => {
-      mockHttpClient.post.mockResolvedValueOnce({ data: mockResponseData });
+      mockHttpClient.post.mockResolvedValueOnce(mockResponseData);
 
       const extra = { custom: 'value', mode: 'override-mode', sessionId: 'override-session' };
       await chat.sendCompletion(testMessages, testSessionId, testMode, testModel, undefined, extra);
@@ -117,18 +117,18 @@ describe('Chat', () => {
       }, undefined);
     });
 
-    test('should send both requestConfig and extra metadata', async () => {
-      mockHttpClient.post.mockResolvedValueOnce({ data: mockResponseData });
-      const mockRequestConfig: PearlRequestOptions = { timeout: 500 };
+    test('should send both options and extra metadata', async () => {
+      mockHttpClient.post.mockResolvedValueOnce(mockResponseData);
+      const mockOptions: PearlRequestOptions = { timeout: 500 };
       const extra = { traceId: 'abc123' };
 
-      await chat.sendCompletion(testMessages, testSessionId, testMode, testModel, mockRequestConfig, extra);
+      await chat.sendCompletion(testMessages, testSessionId, testMode, testModel, mockOptions, extra);
 
       expect(mockHttpClient.post).toHaveBeenCalledWith('/chat/completions', {
         model: testModel,
         messages: testMessages,
         metadata: { traceId: 'abc123', mode: testMode, sessionId: testSessionId }
-      }, mockRequestConfig);
+      }, mockOptions);
     });
   });
 });

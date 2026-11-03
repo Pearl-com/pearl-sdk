@@ -59,15 +59,15 @@ export class Webhooks {
      * Corresponds to the POST /webhook API endpoint.
      *
      * @param request The WebhookEndpointRequest containing the webhook endpoint URL.
-     * @param requestConfig Optional request configuration (e.g., custom headers, timeout override).
+     * @param options Optional request options (headers, timeout, signal).
      * @returns A Promise that resolves on successful registration (HTTP 200).
      * @throws PearlError on API errors (e.g., 400, 401, 500), propagated by the HTTP client.
      */
     public async register(
         request: WebhookEndpointRequest,
-        requestConfig?: PearlRequestOptions
+        options?: PearlRequestOptions
     ): Promise<void> {
-        await this.apiClient.post('/webhook', request, requestConfig);
+        await this.apiClient.post('/webhook', request, options);
     }
 
     /**
@@ -75,14 +75,14 @@ export class Webhooks {
      * Corresponds to the PUT /webhook API endpoint.
      *
      * @param request The WebhookEndpointRequest containing the updated webhook endpoint URL.
-     * @param requestConfig Optional request configuration (e.g., custom headers, timeout override).
+     * @param options Optional request options (headers, timeout, signal).
      * @returns A Promise that resolves on successful update (HTTP 200).
      * @throws PearlError on API errors (e.g., 400, 401, 500), propagated by the HTTP client.
      */
     public async update(
         request: WebhookEndpointRequest,
-        requestConfig?: PearlRequestOptions
+        options?: PearlRequestOptions
     ): Promise<void> {
-        await this.apiClient.put('/webhook', request, requestConfig);
+        await this.apiClient.put('/webhook', request, options);
     }
 }

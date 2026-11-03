@@ -1,4 +1,5 @@
-import { HttpClient, PearlRequestOptions, PearlError } from '../src/core/HttpClient';
+import { HttpClient, PearlRequestOptions } from '../src/core/HttpClient';
+import { PearlError } from '../src/core/PearlError';
 import { File as NodeFile } from 'node:buffer';
 import { Files } from '../src/resources/files';
 import { FILE_PURPOSES, FileObject } from '../src/types';
@@ -27,7 +28,7 @@ describe('Files', () => {
         };
 
         test('uploads a Buffer and defaults purpose to attachment', async () => {
-            mockHttpClient.post.mockResolvedValueOnce({ data: mockFileObject });
+            mockHttpClient.post.mockResolvedValueOnce(mockFileObject);
 
             const result = await files.create({
                 file: Buffer.from('hello'),
@@ -53,7 +54,7 @@ describe('Files', () => {
         });
 
         test('uploads a Blob and forwards explicit purpose', async () => {
-            mockHttpClient.post.mockResolvedValueOnce({ data: mockFileObject });
+            mockHttpClient.post.mockResolvedValueOnce(mockFileObject);
 
             const blob = new Blob(['hi'], { type: 'text/plain' });
             await files.create({
@@ -72,7 +73,7 @@ describe('Files', () => {
         });
 
         test('forwards request options to the transport', async () => {
-            mockHttpClient.post.mockResolvedValueOnce({ data: mockFileObject });
+            mockHttpClient.post.mockResolvedValueOnce(mockFileObject);
 
             await files.create(
                 { file: Buffer.from('x'), sessionId: 's', filename: 'x.bin' },
@@ -80,9 +81,9 @@ describe('Files', () => {
             );
 
             const [, , config] = mockHttpClient.post.mock.calls[0];
-            const cfg = config as PearlRequestOptions;
-            expect(cfg.timeout).toBe(123);
-            expect(cfg.headers).toMatchObject({
+            const options = config as PearlRequestOptions;
+            expect(options.timeout).toBe(123);
+            expect(options.headers).toMatchObject({
                 'X-Trace': 'abc'
             });
         });
@@ -103,7 +104,7 @@ describe('Files', () => {
         });
 
         test('uploads a Uint8Array and applies contentType on the Blob', async () => {
-            mockHttpClient.post.mockResolvedValueOnce({ data: mockFileObject });
+            mockHttpClient.post.mockResolvedValueOnce(mockFileObject);
 
             const data = new Uint8Array([1, 2, 3, 4]);
             await files.create({
@@ -123,7 +124,7 @@ describe('Files', () => {
         });
 
         test('preserves a File name when no filename override is supplied', async () => {
-            mockHttpClient.post.mockResolvedValueOnce({ data: mockFileObject });
+            mockHttpClient.post.mockResolvedValueOnce(mockFileObject);
             const file = new NodeFile(['hello'], 'original.txt', { type: 'text/plain' });
             await files.create({ file: file as unknown as Blob, sessionId: 's' });
             const form = mockHttpClient.post.mock.calls[0][1] as FormData;
@@ -131,7 +132,7 @@ describe('Files', () => {
         });
 
         test('uploads an ArrayBuffer', async () => {
-            mockHttpClient.post.mockResolvedValueOnce({ data: mockFileObject });
+            mockHttpClient.post.mockResolvedValueOnce(mockFileObject);
 
             const buffer = new Uint8Array([9, 8, 7]).buffer;
             await files.create({
@@ -148,7 +149,7 @@ describe('Files', () => {
         });
 
         test('posts to /files endpoint', async () => {
-            mockHttpClient.post.mockResolvedValueOnce({ data: mockFileObject });
+            mockHttpClient.post.mockResolvedValueOnce(mockFileObject);
 
             await files.create({ file: Buffer.from('x'), sessionId: 's', filename: 'x' });
 
@@ -156,7 +157,7 @@ describe('Files', () => {
         });
 
         test('sends sessionId as camelCase form field, not session_id', async () => {
-            mockHttpClient.post.mockResolvedValueOnce({ data: mockFileObject });
+            mockHttpClient.post.mockResolvedValueOnce(mockFileObject);
 
             await files.create({
                 file: Buffer.from('x'),
@@ -171,7 +172,7 @@ describe('Files', () => {
         });
 
         test('defaults purpose to attachment when omitted', async () => {
-            mockHttpClient.post.mockResolvedValueOnce({ data: mockFileObject });
+            mockHttpClient.post.mockResolvedValueOnce(mockFileObject);
 
             await files.create({ file: Buffer.from('x'), sessionId: 's', filename: 'x' });
 
@@ -181,7 +182,7 @@ describe('Files', () => {
         });
 
         test('forwards an arbitrary purpose string unchanged', async () => {
-            mockHttpClient.post.mockResolvedValueOnce({ data: mockFileObject });
+            mockHttpClient.post.mockResolvedValueOnce(mockFileObject);
 
             await files.create({
                 file: Buffer.from('x'),
@@ -196,7 +197,7 @@ describe('Files', () => {
         });
 
         test('uses default filename "file" when none provided for a Buffer', async () => {
-            mockHttpClient.post.mockResolvedValueOnce({ data: mockFileObject });
+            mockHttpClient.post.mockResolvedValueOnce(mockFileObject);
 
             await files.create({ file: Buffer.from('x'), sessionId: 's' });
 
@@ -214,7 +215,7 @@ describe('Files', () => {
                 purpose: 'attachment',
                 createdAt: 1700000000
             };
-            mockHttpClient.post.mockResolvedValueOnce({ data: serverResponse });
+            mockHttpClient.post.mockResolvedValueOnce(serverResponse);
 
             const result = await files.create({
                 file: Buffer.from('content'),
@@ -230,21 +231,21 @@ describe('Files', () => {
             expect(result.createdAt).toBe(1700000000);
         });
 
-        test('does not mutate the caller-provided requestConfig', async () => {
-            mockHttpClient.post.mockResolvedValueOnce({ data: mockFileObject });
+        test('does not mutate the caller-provided options', async () => {
+            mockHttpClient.post.mockResolvedValueOnce(mockFileObject);
 
-            const userConfig: PearlRequestOptions = {
+            const userOptions: PearlRequestOptions = {
                 headers: { 'X-Trace': 'abc' },
                 timeout: 5000
             };
-            const userConfigSnapshot = JSON.parse(JSON.stringify(userConfig));
+            const userOptionsSnapshot = JSON.parse(JSON.stringify(userOptions));
 
             await files.create(
                 { file: Buffer.from('x'), sessionId: 's', filename: 'x' },
-                userConfig
+                userOptions
             );
 
-            expect(userConfig).toEqual(userConfigSnapshot);
+            expect(userOptions).toEqual(userOptionsSnapshot);
         });
 
         test('propagates HTTP errors with response data', async () => {
