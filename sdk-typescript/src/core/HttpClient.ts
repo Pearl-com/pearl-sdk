@@ -2,7 +2,11 @@ import { PearlError } from './PearlError';
 import { RetryPolicy } from './RetryPolicy';
 
 export interface PearlRequestOptions {
-  headers?: HeadersInit;
+  /**
+   * Headers that override the defaults. Spelled out rather than `HeadersInit`,
+   * which is a DOM type that projects using only Node.js types do not have.
+   */
+  headers?: Headers | Record<string, string> | [string, string][];
   /** Timeout per attempt, including reading the response body, in milliseconds. */
   timeout?: number;
   signal?: AbortSignal;
