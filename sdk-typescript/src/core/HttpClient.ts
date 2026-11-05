@@ -10,11 +10,13 @@ export interface PearlRequestOptions {
     signal?: AbortSignal;
 }
 
-/** Throws unless the timeout is greater than 0 and no larger than Node's timers support. */
+/** The longest delay a Node timer supports (2^31 - 1 ms, about 24.8 days). Longer delays fire almost immediately. */
+const MAX_TIMEOUT_MS = 2 ** 31 - 1;
+
+/** Throws unless the timeout is greater than 0 and no larger than MAX_TIMEOUT_MS. */
 export function validateTimeout(timeout: number): void {
-    // Larger values overflow Node's timer and fire almost immediately.
-    if (!Number.isFinite(timeout) || timeout <= 0 || timeout > 2_147_483_647) {
-        throw new Error('Timeout must be greater than 0 and at most 2147483647 milliseconds.');
+    if (!Number.isFinite(timeout) || timeout <= 0 || timeout > MAX_TIMEOUT_MS) {
+        throw new Error(`Timeout must be greater than 0 and at most ${MAX_TIMEOUT_MS} milliseconds.`);
     }
 }
 
