@@ -2,10 +2,7 @@ import { PearlError } from './PearlError';
 import { RetryPolicy } from './RetryPolicy';
 
 export interface PearlRequestOptions {
-  /**
-   * Headers that override the defaults. Spelled out rather than `HeadersInit`,
-   * which is a DOM type that projects using only Node.js types do not have.
-   */
+  /** Headers that override the defaults. Names are case-insensitive. */
   headers?: Headers | Record<string, string> | [string, string][];
   /** Timeout per attempt, including reading the response body, in milliseconds. */
   timeout?: number;
@@ -22,6 +19,17 @@ export function validateTimeout(timeout: number): void {
 /** Keeps the caller's abort reason (for example from AbortSignal.timeout) as the cause. */
 function aborted(signal: AbortSignal): PearlError {
   return new PearlError('Request aborted.', 'aborted', { cause: signal.reason });
+}
+
+/** Returns the parsed value for a JSON object or array, and the raw text for anything else. */
+function parseBody(text: string): unknown {
+  if (!text) return undefined;
+  try {
+    const parsed: unknown = JSON.parse(text);
+    return typeof parsed === 'object' && parsed !== null ? parsed : text;
+  } catch {
+    return text;
+  }
 }
 
 function wait(delay: number, signal?: AbortSignal): Promise<void> {
@@ -68,6 +76,8 @@ export class HttpClient {
     validateTimeout(timeout);
 
     const url = this.baseUrl.replace(/\/+$/, '') + '/' + path.replace(/^\/+/, '');
+    // A malformed URL is a caller error, not a network failure.
+    new URL(url);
     const headers = new Headers({ Authorization: `Bearer ${this.apiKey}`, 'Content-Type': 'application/json' });
     new Headers(options.headers).forEach((value, key) => headers.set(key, value));
 
@@ -89,14 +99,7 @@ export class HttpClient {
       try {
         const response = await fetch(url, { method, headers, body: payload, signal: controller.signal });
         const text = await response.text();
-        let data: unknown = text || undefined;
-        if (text) {
-          try {
-            data = JSON.parse(text);
-          } catch {
-            // Keep plain-text and malformed JSON responses as text.
-          }
-        }
+        const data = parseBody(text);
         if (response.ok) return data as T;
         failure = new PearlError(`Request failed with status ${response.status}.`, 'http', {
           status: response.status,

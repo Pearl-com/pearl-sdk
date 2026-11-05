@@ -12,7 +12,7 @@ The SDK supports Node.js 20 and later.
 3. Run `npm ci`, `npm test -- --runInBand` and `npm run build`
    on the oldest supported Node.js version and on the current LTS version.
 4. Run `npm pack`. Check that the archive contains the `dist` JavaScript and
-   declaration files, `package.json`, `README.md` and `LICENSE`.
+   declaration files, `package.json` and `README.md`.
    Install the archive in an empty project and check that the import,
    the TypeScript types and one request against a local test server work.
 5. Merge the release commit and record its SHA and the archive checksum.

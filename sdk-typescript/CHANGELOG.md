@@ -7,6 +7,8 @@
   (headers, timeout, signal) and Axios errors with PearlError.
 - Breaking: require Node.js 20 or later.
 - Aborted requests keep the caller's abort reason in `PearlError.cause`.
+- Parse response bodies as JSON only when they hold an object or array; other
+  bodies are returned as text.
 - Preserve resource payloads and HTTP 422 retry behavior. Timeouts now cover
   response body reading; caller cancellation also interrupts retry waits.
 - Generate multipart boundaries through native FormData.

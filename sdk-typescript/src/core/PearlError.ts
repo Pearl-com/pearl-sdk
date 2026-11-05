@@ -2,7 +2,7 @@ export type PearlErrorKind = 'http' | 'network' | 'timeout' | 'aborted';
 
 /**
  * Error thrown when a Pearl API request fails. `kind` tells why it failed.
- * Invalid arguments, such as an out-of-range timeout, throw a plain `Error` or `TypeError` before any request is sent.
+ * Invalid arguments, such as an out-of-range timeout, an invalid header or a malformed base URL, throw a plain `Error` or `TypeError` before any request is sent.
  */
 export class PearlError extends Error {
   readonly name = 'PearlError';

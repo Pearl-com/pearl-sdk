@@ -226,7 +226,7 @@ Version 2 replaces Axios with native `fetch`. Chat, file upload, and webhook met
 
 ### Request options
 
-Replace `AxiosRequestConfig` with the exported `PearlRequestOptions` type. The supported options are:
+Replace `AxiosRequestConfig` with the exported `PearlRequestOptions` type. Pass it in the same place you passed the Axios config: the fifth argument of `chat.sendCompletion` (after `model`), or the last argument of `files.create`, `webhooks.register` and `webhooks.update`. The supported options are:
 
 | Option | Purpose |
 | --- | --- |
@@ -275,9 +275,11 @@ The error kinds are `http`, `network`, `timeout`, and `aborted`. Network errors 
 
 ### Response and retry behavior
 
-Response bodies are parsed as JSON when possible. Other bodies are returned as text, and empty bodies return `undefined`. Webhook registration and update methods still return `void`.
+Response bodies that contain a JSON object or array are parsed. Other bodies, including plain text and bare JSON values such as `123` or `true`, are returned as text, and empty bodies return `undefined`. Webhook registration and update methods return `void`.
 
-Only HTTP 422 responses are retried, using the existing retry policy. Network failures, timeouts, and cancelled requests are not retried.
+Only HTTP 422 responses are retried, using the client's retry policy. Network failures, timeouts, and cancelled requests are not retried.
+
+Invalid arguments, such as a bad timeout, header, or base URL, throw a plain `Error` or `TypeError` before any request is sent. They are not `PearlError`s.
 
 ## 🛠️ Development
 
@@ -310,7 +312,7 @@ For publishing steps, see the [release guide](https://github.com/Pearl-com/pearl
 
 ## 📄 License
 
-This project is licensed under the MIT License. See the LICENSE file for details.
+This project is licensed under the MIT License. See the [LICENSE](https://github.com/Pearl-com/pearl-sdk/blob/main/LICENSE) file in the repository root for details.
 
 ## 👤 Author
 
