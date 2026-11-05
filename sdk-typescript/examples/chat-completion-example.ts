@@ -20,7 +20,7 @@ async function runChatCompletionExample() {
   const sessionId = uuidv4();
   // Initialize client with comprehensive configuration for demonstration
   const client = new PearlClient(API_KEY, {
-    timeout: 60000, // 60 seconds timeout
+    timeout: 60000, // 60 seconds per attempt
     retryPolicy: {
       enabled: true,
       maxRetries: 50,

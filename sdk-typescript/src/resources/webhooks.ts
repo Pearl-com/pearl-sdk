@@ -61,7 +61,7 @@ export class Webhooks {
      * @param request The WebhookEndpointRequest containing the webhook endpoint URL.
      * @param options Optional request options (headers, timeout, signal).
      * @returns A Promise that resolves on successful registration (HTTP 200).
-     * @throws PearlRequestError on API errors (e.g., 400, 401, 500), propagated by the HTTP client.
+     * @throws PearlRequestError if the request fails (HTTP error, network failure, timeout or abort).
      */
     public async register(
         request: WebhookEndpointRequest,
@@ -77,7 +77,7 @@ export class Webhooks {
      * @param request The WebhookEndpointRequest containing the updated webhook endpoint URL.
      * @param options Optional request options (headers, timeout, signal).
      * @returns A Promise that resolves on successful update (HTTP 200).
-     * @throws PearlRequestError on API errors (e.g., 400, 401, 500), propagated by the HTTP client.
+     * @throws PearlRequestError if the request fails (HTTP error, network failure, timeout or abort).
      */
     public async update(
         request: WebhookEndpointRequest,

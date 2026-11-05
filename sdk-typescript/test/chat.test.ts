@@ -44,7 +44,7 @@ describe('Chat', () => {
     };
 
     test('should call apiClient.post with correct endpoint and payload', async () => {
-      // Mock the successful response from HTTP post
+      // Mock the parsed response body returned by the HTTP client
       mockHttpClient.post.mockResolvedValueOnce(mockResponseData);
 
       const response = await chat.sendCompletion(testMessages, testSessionId, testMode, testModel);
@@ -58,7 +58,7 @@ describe('Chat', () => {
         metadata: { mode: testMode, sessionId: testSessionId }
       }, undefined);
 
-      // Expect the method to return the data part of the HTTP response
+      // Expect the method to return the parsed response body
       expect(response).toEqual(mockResponseData);
     });
 

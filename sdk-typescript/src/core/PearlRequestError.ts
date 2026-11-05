@@ -7,9 +7,13 @@ export type PearlRequestErrorKind = 'http' | 'network' | 'timeout' | 'aborted';
  */
 export class PearlRequestError extends Error {
     readonly name = 'PearlRequestError';
+    /** HTTP status code. Set when `kind` is `'http'`. */
     readonly status?: number;
+    /** Parsed or raw response body. Set when `kind` is `'http'`. */
     readonly data?: unknown;
+    /** Response headers. Set when `kind` is `'http'`. */
     readonly headers?: Headers;
+    /** The underlying error for `'network'`, or the abort reason for `'aborted'`. */
     readonly cause?: unknown;
 
     constructor(

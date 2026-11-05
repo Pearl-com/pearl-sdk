@@ -36,7 +36,7 @@ const client = new PearlClient('YOUR_PEARL_API_KEY');
 
 // Or create a client with custom options
 const customClient = new PearlClient('YOUR_PEARL_API_KEY', {
-  timeout: 60000,        // 60 seconds timeout
+  timeout: 60000,        // 60 seconds per attempt
   retryPolicy: {
     enabled: true,
     maxRetries: 50,
