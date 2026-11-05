@@ -3,6 +3,9 @@ import { PearlClient, PearlRequestError, PearlRequestOptions } from '../src';
 const send = (client: PearlClient, options: PearlRequestOptions = {}) =>
   client.chat.sendCompletion([], 'session', undefined, undefined, options);
 
+const json = (body: string, init: ResponseInit = {}) =>
+  new Response(body, { ...init, headers: { ...init.headers, 'Content-Type': 'application/json' } });
+
 /** A fetch implementation that never settles on its own and rejects once the request signal aborts. */
 const hangUntilAborted = (_url: unknown, init: RequestInit) =>
   new Promise((_resolve, reject) => {
@@ -30,7 +33,7 @@ describe('HttpClient (fetch transport)', () => {
   });
 
   test.each(['https://example.com/api/v1', 'https://example.com/api/v1/'])('preserves base path %s', async baseUrl => {
-    mock.mockResolvedValue(new Response('{"id":"ok"}'));
+    mock.mockResolvedValue(json('{"id":"ok"}'));
     const headers = { authorization: 'Bearer override', 'X-Trace': 'test' };
 
     await expect(send(new PearlClient('key', { baseUrl }), { headers })).resolves.toEqual({ id: 'ok' });
@@ -44,21 +47,28 @@ describe('HttpClient (fetch transport)', () => {
   });
 
   test.each([
-    ['plain text', 'plain text'],
-    ['', undefined],
-    ['{broken', '{broken'],
-    ['123', '123'],
-    ['true', 'true'],
-    ['null', 'null'],
-    ['"quoted"', '"quoted"'],
-    ['[1,2]', [1, 2]],
-  ])('handles body %j', async (body, expected) => {
-    mock.mockResolvedValue(new Response(body));
+    ['plain text', 'text/plain', 'plain text'],
+    ['{"a":1}', 'text/plain', '{"a":1}'],
+    ['{"a":1}', undefined, '{"a":1}'],
+    ['{"a":1}', 'application/json', { a: 1 }],
+    ['{"a":1}', 'Application/JSON; charset=utf-8', { a: 1 }],
+    ['{"a":1}', 'application/problem+json', { a: 1 }],
+    ['[1,2]', 'application/json', [1, 2]],
+    ['123', 'application/json', 123],
+    ['"quoted"', 'application/json', 'quoted'],
+    ['{broken', 'application/json', '{broken'],
+    ['', 'application/json', undefined],
+    ['', 'text/plain', undefined],
+  ])('handles body %j with content type %s', async (body, contentType, expected) => {
+    const headers: Record<string, string> = contentType ? { 'Content-Type': contentType } : {};
+    // A byte body has no default content type, unlike a string body.
+    mock.mockResolvedValue(new Response(new TextEncoder().encode(body), { headers }));
+
     await expect(send(new PearlClient('key'))).resolves.toEqual(expected);
   });
 
   test('exposes HTTP error details without request credentials', async () => {
-    mock.mockResolvedValue(new Response('{"message":"bad"}', { status: 400, headers: { 'X-Trace': '123' } }));
+    mock.mockResolvedValue(json('{"message":"bad"}', { status: 400, headers: { 'X-Trace': '123' } }));
 
     const error = await send(new PearlClient('secret')).catch((e: unknown) => e);
 
@@ -94,7 +104,7 @@ describe('HttpClient (fetch transport)', () => {
   });
 
   test('retries 422 and succeeds', async () => {
-    mock.mockResolvedValueOnce(new Response('busy', { status: 422 })).mockResolvedValueOnce(new Response('{}'));
+    mock.mockResolvedValueOnce(new Response('busy', { status: 422 })).mockResolvedValueOnce(json('{}'));
 
     await expect(send(new PearlClient('key', { retryPolicy: { retryDelayMs: 1 } }))).resolves.toEqual({});
 
@@ -159,7 +169,7 @@ describe('HttpClient (fetch transport)', () => {
     const signal = new AbortController().signal;
     const add = jest.spyOn(signal, 'addEventListener');
     const remove = jest.spyOn(signal, 'removeEventListener');
-    mock.mockResolvedValue(new Response('{}', { status }));
+    mock.mockResolvedValue(json('{}', { status }));
 
     const request = send(new PearlClient('key'), { signal });
     if (status === 200) {
@@ -202,7 +212,7 @@ describe('HttpClient (fetch transport)', () => {
     mock.mockImplementation(async (_url, init) => {
       const session = JSON.parse(init.body).metadata.sessionId;
       attempts[session] = (attempts[session] || 0) + 1;
-      return new Response('{}', { status: attempts[session] === 1 ? 422 : 200 });
+      return json('{}', { status: attempts[session] === 1 ? 422 : 200 });
     });
     const client = new PearlClient('key', { retryPolicy: { maxRetries: 1, retryDelayMs: 1 } });
 
@@ -279,7 +289,7 @@ describe('HttpClient (fetch transport)', () => {
     const signal = new AbortController().signal;
     const add = jest.spyOn(signal, 'addEventListener');
     const remove = jest.spyOn(signal, 'removeEventListener');
-    mock.mockResolvedValueOnce(new Response('busy', { status: 422 })).mockResolvedValueOnce(new Response('{}'));
+    mock.mockResolvedValueOnce(new Response('busy', { status: 422 })).mockResolvedValueOnce(json('{}'));
 
     await expect(send(new PearlClient('key', { retryPolicy: { retryDelayMs: 1 } }), { signal })).resolves.toEqual({});
 

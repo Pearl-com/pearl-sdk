@@ -21,12 +21,17 @@ function aborted(signal: AbortSignal): PearlRequestError {
   return new PearlRequestError('Request aborted.', 'aborted', { cause: signal.reason });
 }
 
-/** Returns the parsed value for a JSON object or array, and the raw text for anything else. */
-function parseBody(text: string): unknown {
+function isJson(contentType: string | null): boolean {
+  const mediaType = (contentType ?? '').split(';')[0].trim().toLowerCase();
+  return mediaType === 'application/json' || mediaType.endsWith('+json');
+}
+
+/** Parses the body when the response is declared as JSON. Otherwise, or if parsing fails, returns the raw text. */
+function parseBody(text: string, contentType: string | null): unknown {
   if (!text) return undefined;
+  if (!isJson(contentType)) return text;
   try {
-    const parsed: unknown = JSON.parse(text);
-    return typeof parsed === 'object' && parsed !== null ? parsed : text;
+    return JSON.parse(text);
   } catch {
     return text;
   }
@@ -99,7 +104,7 @@ export class HttpClient {
       try {
         const response = await fetch(url, { method, headers, body: payload, signal: controller.signal });
         const text = await response.text();
-        const data = parseBody(text);
+        const data = parseBody(text, response.headers.get('content-type'));
         if (response.ok) return data as T;
         failure = new PearlRequestError(`Request failed with status ${response.status}.`, 'http', {
           status: response.status,

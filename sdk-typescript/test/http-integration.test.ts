@@ -46,7 +46,7 @@ describe('native fetch integration', () => {
         res.writeHead(307, { Location: '/redirected' });
         res.end();
       } else {
-        res.writeHead(200);
+        res.writeHead(200, { 'Content-Type': 'application/json' });
         res.end('{"id":"ok"}');
       }
     });

@@ -275,7 +275,7 @@ The error kinds are `http`, `network`, `timeout`, and `aborted`. Network errors 
 
 ### Response and retry behavior
 
-Response bodies that contain a JSON object or array are parsed. Other bodies, including plain text and bare JSON values such as `123` or `true`, are returned as text, and empty bodies return `undefined`. Webhook registration and update methods return `void`.
+Response bodies are parsed as JSON when the `Content-Type` is `application/json` or ends in `+json`. Other bodies, and JSON that fails to parse, are returned as text. Empty bodies return `undefined`. Webhook registration and update methods return `void`.
 
 Only HTTP 422 responses are retried, using the client's retry policy. Network failures, timeouts, and cancelled requests are not retried.
 
@@ -312,7 +312,7 @@ For publishing steps, see the [release guide](https://github.com/Pearl-com/pearl
 
 ## 📄 License
 
-This project is licensed under the MIT License. See the [LICENSE](https://github.com/Pearl-com/pearl-sdk/blob/main/LICENSE) file in the repository root for details.
+This project is licensed under the MIT License. See the LICENSE file for details.
 
 ## 👤 Author
 
