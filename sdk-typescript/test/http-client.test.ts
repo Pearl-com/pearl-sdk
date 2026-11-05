@@ -29,8 +29,12 @@ describe('HttpClient', () => {
             expect(() => new PearlClient('')).toThrow();
         });
 
-        test.each([0, -1, NaN, Infinity, 2_147_483_648])('rejects timeout %s when creating the client', (timeout) => {
+        test.each([0, -1, NaN, Infinity, 600_001])('rejects timeout %s when creating the client', (timeout) => {
             expect(() => new PearlClient('key', { timeout })).toThrow();
+        });
+
+        test('accepts the maximum timeout of 10 minutes', () => {
+            expect(() => new PearlClient('key', { timeout: 600_000 })).not.toThrow();
         });
 
         test.each(['not a url', '/relative', 'ftp://example.com'])('rejects base URL %s', (baseUrl) => {
@@ -104,7 +108,7 @@ describe('HttpClient', () => {
             expect(mock).not.toHaveBeenCalled();
         });
 
-        const invalidTimeouts = [0, NaN, Infinity, 2_147_483_648];
+        const invalidTimeouts = [0, NaN, Infinity, 600_001];
         test.each(invalidTimeouts)('rejects request timeout %s without sending a request', async (timeout) => {
             await expect(send(new PearlClient('key'), { timeout })).rejects.toThrow('Timeout');
 

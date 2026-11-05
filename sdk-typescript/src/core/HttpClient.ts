@@ -10,8 +10,8 @@ export interface PearlRequestOptions {
     signal?: AbortSignal;
 }
 
-/** The longest delay a Node timer supports (2^31 - 1 ms, about 24.8 days). Longer delays fire almost immediately. */
-const MAX_TIMEOUT_MS = 2 ** 31 - 1;
+/** The longest timeout accepted: 10 minutes, far above the 30 second default. */
+const MAX_TIMEOUT_MS = 10 * 60 * 1000;
 
 /** Throws unless the timeout is greater than 0 and no larger than MAX_TIMEOUT_MS. */
 export function validateTimeout(timeout: number): void {

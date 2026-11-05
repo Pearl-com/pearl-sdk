@@ -231,7 +231,7 @@ Replace `AxiosRequestConfig` with the exported `PearlRequestOptions` type. It go
 | Option | Purpose |
 | --- | --- |
 | `headers` | Custom headers, supplied as a plain object, a `Headers` instance, or an array of name/value pairs. They override default headers. |
-| `timeout` | Timeout per attempt in milliseconds, including reading the response body. Defaults to 30,000; must be finite, greater than 0, and at most 2,147,483,647. |
+| `timeout` | Timeout per attempt in milliseconds, including reading the response body. Defaults to 30,000; must be greater than 0 and at most 600,000 (10 minutes). |
 | `signal` | An `AbortSignal` for cancelling the request, including any wait before a retry. |
 
 File uploads set their own multipart content type and boundary. Do not set the `Content-Type` header for uploads.
