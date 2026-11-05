@@ -46,7 +46,7 @@ export class Files {
      * @param params Upload parameters including the file and its session id.
      * @param options Optional request options (headers, timeout, signal).
      * @returns A Promise that resolves to the uploaded FileObject.
-     * @throws PearlError if the API call fails or a network issue occurs.
+     * @throws PearlRequestError if the API call fails or a network issue occurs.
      */
     public async create(
         params: FileCreateParams,

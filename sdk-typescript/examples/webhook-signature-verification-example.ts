@@ -3,7 +3,7 @@
 // 2. Transpile and run:
 //    npx ts-node examples/webhook-signature-verification-example.ts
 
-import { PearlClient, PearlError } from '../src';
+import { PearlClient, PearlRequestError } from '../src';
 
 // --- IMPORTANT: Configure your API Key ---
 // Replace 'YOUR_PEARL_API_KEY' with your actual Pearl API Key.
@@ -75,7 +75,7 @@ async function runVerificationExample() {
 
   } catch (error) {
     console.error("\nAn error occurred during the webhook verification example:");
-    if (error instanceof PearlError) {
+    if (error instanceof PearlRequestError) {
       console.error("Error message:", error.message);
       if (error.kind === 'http') {
         console.error("Status:", error.status);

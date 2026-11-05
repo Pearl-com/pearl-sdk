@@ -1,4 +1,4 @@
-import { PearlClient, PearlError, PearlRequestOptions } from '../src';
+import { PearlClient, PearlRequestError, PearlRequestOptions } from '../src';
 
 const send = (client: PearlClient, options: PearlRequestOptions = {}) =>
   client.chat.sendCompletion([], 'session', undefined, undefined, options);
@@ -62,9 +62,9 @@ describe('HttpClient (fetch transport)', () => {
 
     const error = await send(new PearlClient('secret')).catch((e: unknown) => e);
 
-    expect(error).toBeInstanceOf(PearlError);
+    expect(error).toBeInstanceOf(PearlRequestError);
     expect(error).toMatchObject({ kind: 'http', status: 400, data: { message: 'bad' } });
-    expect((error as PearlError).headers?.get('x-trace')).toBe('123');
+    expect((error as PearlRequestError).headers?.get('x-trace')).toBe('123');
     expect(JSON.stringify(error)).not.toContain('secret');
     expect(mock).toHaveBeenCalledTimes(1);
   });
@@ -81,7 +81,7 @@ describe('HttpClient (fetch transport)', () => {
     const error = await send(new PearlClient('key', { baseUrl })).catch((e: unknown) => e);
 
     expect(error).toMatchObject({ name: 'TypeError' });
-    expect(error).not.toBeInstanceOf(PearlError);
+    expect(error).not.toBeInstanceOf(PearlRequestError);
     expect(mock).not.toHaveBeenCalled();
   });
 
@@ -89,7 +89,7 @@ describe('HttpClient (fetch transport)', () => {
     const error = await send(new PearlClient('key'), { headers: { 'bad name': 'x' } }).catch((e: unknown) => e);
 
     expect(error).toMatchObject({ name: 'TypeError' });
-    expect(error).not.toBeInstanceOf(PearlError);
+    expect(error).not.toBeInstanceOf(PearlRequestError);
     expect(mock).not.toHaveBeenCalled();
   });
 

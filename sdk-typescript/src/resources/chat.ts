@@ -20,7 +20,7 @@ export class Chat {
    * @param model The model to use (optional, defaults to "pearl-ai").
    * @param options Optional request options (headers, timeout, signal).
    * @returns A Promise that resolves to the ChatCompletionResponse on success.
-   * @throws PearlError if the API call fails or a network issue occurs.
+   * @throws PearlRequestError if the API call fails or a network issue occurs.
    */
   public async sendCompletion(
     messages: ChatMessage[],

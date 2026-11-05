@@ -240,10 +240,10 @@ Axios-specific options such as adapters, interceptors, transforms, agents, and p
 
 ### Error handling
 
-Replace `axios.isAxiosError(error)` with `error instanceof PearlError`. HTTP errors now expose `status`, `data`, and `headers` directly, instead of through `error.response`.
+Replace `axios.isAxiosError(error)` with `error instanceof PearlRequestError`. HTTP errors now expose `status`, `data`, and `headers` directly, instead of through `error.response`.
 
 ```ts
-import { PearlClient, PearlError } from '@pearl.com/pearl-api-client-sdk';
+import { PearlClient, PearlRequestError } from '@pearl.com/pearl-api-client-sdk';
 import type { PearlRequestOptions } from '@pearl.com/pearl-api-client-sdk';
 
 const client = new PearlClient('YOUR_PEARL_API_KEY');
@@ -256,7 +256,7 @@ async function registerWebhook() {
       options
     );
   } catch (error) {
-    if (!(error instanceof PearlError)) {
+    if (!(error instanceof PearlRequestError)) {
       throw error;
     }
 
@@ -279,7 +279,7 @@ Response bodies that contain a JSON object or array are parsed. Other bodies, in
 
 Only HTTP 422 responses are retried, using the client's retry policy. Network failures, timeouts, and cancelled requests are not retried.
 
-Invalid arguments, such as a bad timeout, header, or base URL, throw a plain `Error` or `TypeError` before any request is sent. They are not `PearlError`s.
+Invalid arguments, such as a bad timeout, header, or base URL, throw a plain `Error` or `TypeError` before any request is sent. They are not `PearlRequestError`s.
 
 ## 🛠️ Development
 

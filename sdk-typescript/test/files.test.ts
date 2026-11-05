@@ -1,5 +1,5 @@
 import { HttpClient, PearlRequestOptions } from '../src/core/HttpClient';
-import { PearlError } from '../src/core/PearlError';
+import { PearlRequestError } from '../src/core/PearlRequestError';
 import { File as NodeFile } from 'node:buffer';
 import { Files } from '../src/resources/files';
 import { FILE_PURPOSES, FileObject } from '../src/types';
@@ -250,7 +250,7 @@ describe('Files', () => {
 
         test('propagates HTTP errors with response data', async () => {
             const data = { Error: { message: 'Invalid file', code: 'bad_request' } };
-            const httpErr = new PearlError('Invalid file', 'http', { status: 400, data });
+            const httpErr = new PearlRequestError('Invalid file', 'http', { status: 400, data });
             mockHttpClient.post.mockRejectedValueOnce(httpErr);
 
             await expect(

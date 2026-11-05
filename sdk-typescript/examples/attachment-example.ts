@@ -18,7 +18,7 @@ import { readFileSync } from 'fs';
 import { v4 as uuidv4 } from 'uuid';
 import {
     PearlClient,
-    PearlError,
+    PearlRequestError,
     CONVERSATION_MODES,
     FILE_PURPOSES,
     ChatMessage
@@ -82,7 +82,7 @@ async function runAttachmentExample() {
         console.log("Assistant's message:", chatResponse.choices[0].message.content);
     } catch (error) {
         console.error('\n--- Error ---');
-        if (error instanceof PearlError) {
+        if (error instanceof PearlRequestError) {
             console.error('Error message:', error.message);
             if (error.kind === 'http') {
                 console.error('Status:', error.status);

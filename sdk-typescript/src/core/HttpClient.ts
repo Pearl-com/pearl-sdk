@@ -1,4 +1,4 @@
-import { PearlError } from './PearlError';
+import { PearlRequestError } from './PearlRequestError';
 import { RetryPolicy } from './RetryPolicy';
 
 export interface PearlRequestOptions {
@@ -17,8 +17,8 @@ export function validateTimeout(timeout: number): void {
 }
 
 /** Keeps the caller's abort reason (for example from AbortSignal.timeout) as the cause. */
-function aborted(signal: AbortSignal): PearlError {
-  return new PearlError('Request aborted.', 'aborted', { cause: signal.reason });
+function aborted(signal: AbortSignal): PearlRequestError {
+  return new PearlRequestError('Request aborted.', 'aborted', { cause: signal.reason });
 }
 
 /** Returns the parsed value for a JSON object or array, and the raw text for anything else. */
@@ -92,23 +92,23 @@ export class HttpClient {
       const cancel = () => controller.abort(aborted(signal as AbortSignal));
       signal?.addEventListener('abort', cancel, { once: true });
       const timer = setTimeout(() => {
-        controller.abort(new PearlError('Request timed out.', 'timeout'));
+        controller.abort(new PearlRequestError('Request timed out.', 'timeout'));
       }, timeout);
 
-      let failure: PearlError;
+      let failure: PearlRequestError;
       try {
         const response = await fetch(url, { method, headers, body: payload, signal: controller.signal });
         const text = await response.text();
         const data = parseBody(text);
         if (response.ok) return data as T;
-        failure = new PearlError(`Request failed with status ${response.status}.`, 'http', {
+        failure = new PearlRequestError(`Request failed with status ${response.status}.`, 'http', {
           status: response.status,
           data,
           headers: response.headers,
         });
       } catch (cause) {
         if (controller.signal.aborted) throw controller.signal.reason;
-        throw new PearlError('Network request failed.', 'network', { cause });
+        throw new PearlRequestError('Network request failed.', 'network', { cause });
       } finally {
         clearTimeout(timer);
         signal?.removeEventListener('abort', cancel);

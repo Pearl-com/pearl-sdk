@@ -32,6 +32,6 @@ export type {
     WebhookEndpointRequest
 } from './types';
 
-export { PearlError } from './core/PearlError';
-export type { PearlErrorKind } from './core/PearlError';
+export { PearlRequestError } from './core/PearlRequestError';
+export type { PearlRequestErrorKind } from './core/PearlRequestError';
 export type { PearlRequestOptions } from './core/HttpClient';

@@ -3,7 +3,7 @@
 // 2. Transpile and run:
 //    npx ts-node examples/chat-completion-example.ts
 
-import { PearlError, PearlClient, CONVERSATION_MODES, ChatMessage } from '../src';
+import { PearlRequestError, PearlClient, CONVERSATION_MODES, ChatMessage } from '../src';
 import { v4 as uuidv4 } from 'uuid';
 
 // --- IMPORTANT: Configure your API Key ---
@@ -50,7 +50,7 @@ async function runChatCompletionExample() {
 
   } catch (error) {
     console.error("\n--- Chat Completion API Error ---");
-    if (error instanceof PearlError) {
+    if (error instanceof PearlRequestError) {
       console.error("Error message:", error.message);
       if (error.kind === 'http') {
         console.error("Status:", error.status);
