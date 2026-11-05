@@ -1,9 +1,9 @@
 // To run this example:
-// 1. From the sdk-typescript folder, install dependencies: npm ci
+// 1. Install the SDK in your project: npm install @pearl.com/pearl-api-client-sdk
 // 2. Transpile and run:
 //    npx ts-node examples/webhook-signature-verification-example.ts
 
-import { PearlClient, PearlRequestError } from '../src';
+import { PearlClient, PearlRequestError } from '@pearl.com/pearl-api-client-sdk';
 
 // --- IMPORTANT: Configure your API Key ---
 // Replace 'YOUR_PEARL_API_KEY' with your actual Pearl API Key.

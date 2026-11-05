@@ -1,9 +1,9 @@
 // To run this example:
-// 1. From the sdk-typescript folder, install dependencies: npm ci
+// 1. Install the SDK and uuid in your project: npm install @pearl.com/pearl-api-client-sdk uuid
 // 2. Transpile and run:
 //    npx ts-node examples/chat-completion-example.ts
 
-import { PearlRequestError, PearlClient, CONVERSATION_MODES, ChatMessage } from '../src';
+import { PearlRequestError, PearlClient, CONVERSATION_MODES, ChatMessage } from '@pearl.com/pearl-api-client-sdk';
 import { v4 as uuidv4 } from 'uuid';
 
 // --- IMPORTANT: Configure your API Key ---

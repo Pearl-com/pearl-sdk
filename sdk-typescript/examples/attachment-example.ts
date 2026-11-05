@@ -9,7 +9,7 @@
 // with the same sessionId before calling client.files.create.
 //
 // To run this example:
-// 1. From the sdk-typescript folder, install dependencies: npm ci
+// 1. Install the SDK and uuid in your project: npm install @pearl.com/pearl-api-client-sdk uuid
 // 2. Set your API key and IMAGE_PATH below
 // 3. Transpile and run:
 //    npx ts-node examples/attachment-example.ts
@@ -22,7 +22,7 @@ import {
     CONVERSATION_MODES,
     FILE_PURPOSES,
     ChatMessage
-} from '../src';
+} from '@pearl.com/pearl-api-client-sdk';
 
 const API_KEY = 'YOUR_PEARL_API_KEY';
 const IMAGE_PATH = 'image.png';

@@ -1,9 +1,9 @@
 // To run this example:
-// 1. From the sdk-typescript folder, install dependencies: npm ci
+// 1. Install the SDK in your project: npm install @pearl.com/pearl-api-client-sdk
 // 2. Transpile and run:
 //    npx ts-node examples/webhook-management-example.ts
 
-import { PearlRequestError, PearlClient, WebhookEndpointRequest } from '../src';
+import { PearlRequestError, PearlClient, WebhookEndpointRequest } from '@pearl.com/pearl-api-client-sdk';
 
 // --- IMPORTANT: Configure your API Key and Webhook URL ---
 // Replace 'YOUR_PEARL_API_KEY' with your actual Pearl API Key.
