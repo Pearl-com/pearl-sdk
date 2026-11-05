@@ -18,15 +18,18 @@ export function validateTimeout(timeout: number): void {
     }
 }
 
+function isAbsoluteHttpUrl(value: string): boolean {
+    try {
+        const { protocol } = new URL(value);
+        return protocol === 'http:' || protocol === 'https:';
+    } catch {
+        return false;
+    }
+}
+
 /** Throws unless the base URL is an absolute http or https URL. */
 export function validateBaseUrl(baseUrl: string): void {
-    let protocol: string | undefined;
-    try {
-        protocol = new URL(baseUrl).protocol;
-    } catch {
-        // Reported below together with unsupported protocols.
-    }
-    if (protocol !== 'http:' && protocol !== 'https:') {
+    if (!isAbsoluteHttpUrl(baseUrl)) {
         throw new Error('baseUrl must be an absolute http or https URL.');
     }
 }
