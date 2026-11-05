@@ -87,6 +87,10 @@ async function runAttachmentExample() {
             if (error.kind === 'http') {
                 console.error('Status:', error.status);
                 console.error('Data:', JSON.stringify(error.data, null, 2));
+            } else if (error.kind === 'network') {
+                console.error('No response received from server.');
+            } else {
+                console.error('Request stopped:', error.kind);
             }
         } else {
             console.error('An unexpected error occurred:', error);

@@ -87,12 +87,12 @@ describe('HttpClient (fetch transport)', () => {
     expect(mock).toHaveBeenCalledTimes(1);
   });
 
-  test.each(['not a url', '/relative'])('rejects malformed base URL %s as a caller error', async baseUrl => {
-    const error = await send(new PearlClient('key', { baseUrl })).catch((e: unknown) => e);
+  test.each(['not a url', '/relative', 'ftp://example.com'])('rejects invalid base URL "%s" at construction', baseUrl => {
+    expect(() => new PearlClient('key', { baseUrl })).toThrow('baseUrl');
+  });
 
-    expect(error).toMatchObject({ name: 'TypeError' });
-    expect(error).not.toBeInstanceOf(PearlRequestError);
-    expect(mock).not.toHaveBeenCalled();
+  test('uses the default base URL when baseUrl is empty', () => {
+    expect(() => new PearlClient('key', { baseUrl: '' })).not.toThrow();
   });
 
   test('rejects an invalid header as a caller error', async () => {

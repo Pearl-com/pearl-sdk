@@ -1,4 +1,4 @@
-import { HttpClient, validateTimeout } from './HttpClient';
+import { HttpClient, validateBaseUrl, validateTimeout } from './HttpClient';
 import { Chat } from '../resources/chat';
 import { Files } from '../resources/files';
 import { Webhooks } from '../resources/webhooks';
@@ -6,7 +6,7 @@ import type { RetryPolicyConfig } from '../types';
 import { RetryPolicy } from './RetryPolicy';
 
 export interface PearlClientOptions {
-  /** Base URL. Defaults to https://api.pearl.com/api/v1/. */
+  /** Absolute http or https URL. Defaults to https://api.pearl.com/api/v1/. */
   baseUrl?: string;
   /** Timeout per attempt, including reading the response body. Defaults to 30000 ms. */
   timeout?: number;
@@ -23,7 +23,7 @@ export class PearlClient {
   /** Webhook registration and signature verification. */
   public webhooks: Webhooks;
 
-  /** Throws if the API key is missing or timeout/retry settings are invalid. */
+  /** Throws if the API key is missing or the base URL, timeout or retry settings are invalid. */
   constructor(apiKey: string, options?: PearlClientOptions) {
     if (!apiKey) {
       throw new Error('PearlClient must include an apiKey.');
@@ -32,9 +32,11 @@ export class PearlClient {
     const { baseUrl, timeout, retryPolicy } = options ?? {};
     const requestTimeout = timeout ?? 30000;
     validateTimeout(requestTimeout);
+    const resolvedBaseUrl = baseUrl || 'https://api.pearl.com/api/v1/';
+    validateBaseUrl(resolvedBaseUrl);
 
     const apiClient = new HttpClient(
-      baseUrl || 'https://api.pearl.com/api/v1/',
+      resolvedBaseUrl,
       apiKey,
       requestTimeout,
       new RetryPolicy(retryPolicy),
