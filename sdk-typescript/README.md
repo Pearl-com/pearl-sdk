@@ -226,7 +226,7 @@ Version 2 replaces Axios with native `fetch`. Chat, file upload, and webhook met
 
 ### Request options
 
-Replace `AxiosRequestConfig` with the exported `PearlRequestOptions` type. Pass it in the same place you passed the Axios config: the fifth argument of `chat.sendCompletion` (after `model`), or the last argument of `files.create`, `webhooks.register` and `webhooks.update`. The supported options are:
+Replace `AxiosRequestConfig` with the exported `PearlRequestOptions` type. It goes in the same argument position as before: the fifth argument of `chat.sendCompletion`, and the second argument of `files.create`, `webhooks.register` and `webhooks.update`. The supported options are:
 
 | Option | Purpose |
 | --- | --- |
@@ -307,8 +307,6 @@ Run the tests:
 ```bash
 npm test
 ```
-
-For publishing steps, see the [release guide](https://github.com/Pearl-com/pearl-sdk/blob/main/sdk-typescript/RELEASING.md).
 
 ## 📄 License
 
