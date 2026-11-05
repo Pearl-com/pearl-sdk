@@ -10,7 +10,7 @@ export interface PearlRequestOptions {
     signal?: AbortSignal;
 }
 
-/** The longest timeout accepted: 10 minutes, far above the 30 second default. */
+/** The longest timeout accepted: 10 minutes. */
 const MAX_TIMEOUT_MS = 10 * 60 * 1000;
 
 /** Throws unless the timeout is greater than 0 and no larger than MAX_TIMEOUT_MS. */
