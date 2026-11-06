@@ -3,25 +3,29 @@
 A robust and easy-to-use SDK for interacting with the Pearl API, providing streamlined access to AI chat completions, webhook management, and secure signature verification utilities.
 
 ## ✨ Features
+
 **Chat Completions**: Interact with Pearl's AI models for conversational and text generation tasks.
 
 **Webhook Management**: Programmatically register and update webhook endpoints to receive real-time notifications from Pearl.
 
 **Webhook Signature Verification**: Securely verify the authenticity and integrity of incoming webhook payloads.
 
-**Built-in Retry Logic**: Automatic retries with exponential backoff and jitter for transient API errors, enhancing reliability.
+**Built-in Retry Logic**: Automatically retry HTTP 422 responses with exponential backoff and jitter.
 
 **Configurable Client**: Customize API key, base URL, timeout, and retry policy.
 
 ## 📦 Installation
-To install the Pearl API Client SDK, use npm or yarn:
+
+Requires Node.js 20 or later. Install with npm:
 
 ```bash
 npm install @pearl.com/pearl-api-client-sdk
 ```
 
 ## 🚀 Usage
+
 ### Initializing the Client
+
 The PearlClient is your main entry point for interacting with the Pearl API. You can initialize it with just your API key, or specify only the options you need.
 
 ```ts
@@ -30,9 +34,9 @@ import { PearlClient } from '@pearl.com/pearl-api-client-sdk';
 // Simple initialization with just the API key
 const client = new PearlClient('YOUR_PEARL_API_KEY');
 
-// Or with custom options (specify only what you need)
-const client = new PearlClient('YOUR_PEARL_API_KEY', {
-  timeout: 60000,        // 60 seconds timeout
+// Or create a client with custom options
+const customClient = new PearlClient('YOUR_PEARL_API_KEY', {
+  timeout: 60000,        // 60 seconds per attempt
   retryPolicy: {
     enabled: true,
     maxRetries: 50,
@@ -43,6 +47,7 @@ const client = new PearlClient('YOUR_PEARL_API_KEY', {
 ```
 
 ### Chat Completions
+
 Send messages to the Pearl API's chat completions endpoint.
 
 ```ts
@@ -151,7 +156,8 @@ console.log(response.choices[0].message.content);
 
 `client.files.create` accepts a `Buffer`, `Uint8Array`, `ArrayBuffer`, or `Blob`.
 
-Webhook Signature Verification
+### Webhook Signature Verification
+
 Verify incoming webhook requests from Pearl to ensure their authenticity. You'll need the raw request body and the signature from the X-Pearl-API-Signature header.
 
 ```ts
@@ -182,7 +188,8 @@ function handleWebhook(req: any, res: any) {
 }
 ```
 
-Webhook Endpoint Management
+### Webhook Endpoint Management
+
 Register or update your webhook endpoint with Pearl.
 
 ```ts
@@ -213,37 +220,98 @@ async function registerWebhookEndpoint() {
 registerWebhookEndpoint();
 ```
 
-## 🛠️ Development
-To build and test the SDK locally:
+## Migrating from version 1 to version 2
 
-Clone the repository:
+Version 2 replaces Axios with native `fetch`. Chat, file upload, and webhook methods keep the same argument order and response payloads. The breaking changes are the request options and error types.
+
+### Request options
+
+Replace `AxiosRequestConfig` with the exported `PearlRequestOptions` type. It goes in the same argument position as before: the fifth argument of `chat.sendCompletion`, and the second argument of `files.create`, `webhooks.register` and `webhooks.update`. The supported options are:
+
+| Option | Purpose |
+| --- | --- |
+| `headers` | Custom headers, supplied as a plain object, a `Headers` instance, or an array of name/value pairs. They override default headers. |
+| `timeout` | Timeout per attempt in milliseconds, including reading the response body. Defaults to 30,000; must be greater than 0 and at most 600,000 (10 minutes). |
+| `signal` | An `AbortSignal` for cancelling the request, including any wait before a retry. |
+
+File uploads set their own multipart content type and boundary. Do not set the `Content-Type` header for uploads.
+
+Axios-specific options such as adapters, interceptors, transforms, agents, and proxy settings are no longer supported. Proxy behavior follows the runtime's native `fetch`, so existing Axios proxy configurations need to be reviewed.
+
+### Error handling
+
+Replace `axios.isAxiosError(error)` with `error instanceof PearlRequestError`. HTTP errors now expose `status`, `data`, and `headers` directly, instead of through `error.response`.
+
+```ts
+import { PearlClient, PearlRequestError } from '@pearl.com/pearl-api-client-sdk';
+import type { PearlRequestOptions } from '@pearl.com/pearl-api-client-sdk';
+
+const client = new PearlClient('YOUR_PEARL_API_KEY');
+const options: PearlRequestOptions = { timeout: 5000 };
+
+async function registerWebhook() {
+  try {
+    await client.webhooks.register(
+      { endpoint: 'https://example.com/webhook' },
+      options
+    );
+  } catch (error) {
+    if (!(error instanceof PearlRequestError)) {
+      throw error;
+    }
+
+    if (error.kind === 'http') {
+      console.error('API error:', error.status, error.data);
+    } else {
+      console.error('Request failed:', error.kind, error.message);
+    }
+  }
+}
+
+registerWebhook();
+```
+
+The error kinds are `http`, `network`, `timeout`, and `aborted`. Network errors include the underlying error in `cause`, and aborted requests include the reason passed to `AbortController.abort()`.
+
+### Response and retry behavior
+
+Response bodies are parsed as JSON when the `Content-Type` is `application/json` or ends in `+json`. Other bodies, and JSON that fails to parse, are returned as text. Empty bodies return `undefined`. Webhook registration and update methods return `void`.
+
+Only HTTP 422 responses are retried, using the client's retry policy. Network failures, timeouts, and cancelled requests are not retried.
+
+Invalid arguments, such as a bad timeout, header, or base URL, throw a plain `Error` or `TypeError` before any request is sent. They are not `PearlRequestError`s.
+
+## 🛠️ Development
+
+Clone the repository and open the TypeScript SDK directory:
 
 ```bash
 git clone https://github.com/Pearl-com/pearl-sdk.git
-cd pearl-sdk
+cd pearl-sdk/sdk-typescript
 ```
 
 Install dependencies:
 
 ```bash
-npm install
+npm ci
 ```
 
-Build the SDK:
-This compiles the TypeScript source files into JavaScript and generates type declaration files (.d.ts) in the dist/ directory.
+Build the SDK to generate JavaScript and TypeScript declarations in `dist/`:
 
 ```bash
 npm run build
 ```
-Run Tests:
-Execute the unit tests to ensure all components are functioning as expected.
+
+Run the tests:
 
 ```bash
 npm test
 ```
 
 ## 📄 License
+
 This project is licensed under the MIT License. See the LICENSE file for details.
 
 ## 👤 Author
+
 Created by Pearl.com

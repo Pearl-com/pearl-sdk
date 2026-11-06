@@ -1,8 +1,8 @@
-import { AxiosInstance, AxiosRequestConfig } from 'axios';
+import { HttpClient, PearlRequestOptions } from '../core/HttpClient';
 import { FileObject, FILE_PURPOSES, FilePurpose } from '../types';
 
 /**
- * Value types accepted for a file upload. On Node.js (18+) you can pass a
+ * Value types accepted for a file upload. On Node.js (20+) you can pass a
  * `Buffer`, `Uint8Array`, `ArrayBuffer`, or a `Blob`. In the browser,
  * `Blob` or `File` instances are supported.
  */
@@ -31,9 +31,9 @@ export interface FileCreateParams {
  * attached to chat conversations for use by the Assistant or Expert.
  */
 export class Files {
-    private apiClient: AxiosInstance;
+    private apiClient: HttpClient;
 
-    constructor(apiClient: AxiosInstance) {
+    constructor(apiClient: HttpClient) {
         this.apiClient = apiClient;
     }
 
@@ -44,13 +44,13 @@ export class Files {
      * `attachments` field on `ChatMessage`.
      *
      * @param params Upload parameters including the file and its session id.
-     * @param requestConfig Optional Axios request configuration.
+     * @param options Optional request options (headers, timeout, signal).
      * @returns A Promise that resolves to the uploaded FileObject.
-     * @throws AxiosError if the API call fails or a network issue occurs.
+     * @throws PearlRequestError if the request fails (HTTP error, network failure, timeout or abort).
      */
     public async create(
         params: FileCreateParams,
-        requestConfig?: AxiosRequestConfig
+        options?: PearlRequestOptions
     ): Promise<FileObject> {
         const {
             file,
@@ -64,21 +64,7 @@ export class Files {
         formData.append('purpose', String(purpose));
         formData.append('sessionId', sessionId);
 
-        const mergedConfig: AxiosRequestConfig = {
-            ...(requestConfig || {}),
-            headers: {
-                ...(requestConfig?.headers || {}),
-                'Content-Type': 'multipart/form-data'
-            }
-        };
-
-        const response = await this.apiClient.post<FileObject>(
-            '/files',
-            formData,
-            mergedConfig
-        );
-
-        return response.data;
+        return this.apiClient.post<FileObject>('/files', formData, options);
     }
 
     private buildFormData(
@@ -90,7 +76,11 @@ export class Files {
         const resolvedName = filename || 'file';
 
         if (typeof Blob !== 'undefined' && file instanceof Blob) {
-            formData.append('file', file, filename);
+            if (filename === undefined) {
+                formData.append('file', file);
+            } else {
+                formData.append('file', file, filename);
+            }
             return formData;
         }
 

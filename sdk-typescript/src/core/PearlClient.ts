@@ -1,17 +1,17 @@
-import axios, { AxiosInstance, InternalAxiosRequestConfig, AxiosError, AxiosResponse } from 'axios';
+import { HttpClient, validateBaseUrl, validateTimeout } from './HttpClient';
 import { Chat } from '../resources/chat';
 import { Files } from '../resources/files';
 import { Webhooks } from '../resources/webhooks';
-import { ProblemDetailsResponse, RetryPolicyConfig } from '../types';
+import { RetryPolicyConfig } from '../types';
 import { RetryPolicy } from './RetryPolicy';
 
 /**
  * Configuration options for initializing the PearlClient.
  */
 export interface PearlClientOptions {
-  /** Base URL for the Pearl API (optional, defaults to https://api.pearl.com/api/v1/). */
+  /** Absolute http or https base URL for the Pearl API (optional, defaults to https://api.pearl.com/api/v1/). */
   baseUrl?: string;
-  /** Request timeout in milliseconds (optional, defaults to 30000). */
+  /** Timeout per attempt in milliseconds, including reading the response body (optional, defaults to 30000). */
   timeout?: number;
   /** Retry policy configuration (optional). */
   retryPolicy?: RetryPolicyConfig;
@@ -21,11 +21,6 @@ export interface PearlClientOptions {
  * Main client for interacting with the Pearl API.
  */
 export class PearlClient {
-  private readonly apiKey: string;
-  private readonly apiClient: AxiosInstance;
-  private readonly baseUrl: string;
-  private readonly retryPolicy: RetryPolicy;
-
   /**
    * Provides access to Chat API operations.
    */
@@ -51,57 +46,15 @@ export class PearlClient {
     }
 
     const { baseUrl, timeout, retryPolicy } = options || {};
+    const requestTimeout = timeout ?? 30000;
+    validateTimeout(requestTimeout);
+    const resolvedBaseUrl = baseUrl || 'https://api.pearl.com/api/v1/';
+    validateBaseUrl(resolvedBaseUrl);
 
-    if (timeout !== undefined && (typeof timeout !== 'number' || timeout <= 0)) {
-      throw new Error("Timeout must be a positive number if provided.");
-    }
+    const apiClient = new HttpClient(resolvedBaseUrl, apiKey, requestTimeout, new RetryPolicy(retryPolicy));
 
-    this.apiKey = apiKey;
-    this.baseUrl = baseUrl || 'https://api.pearl.com/api/v1/';
-    this.retryPolicy = new RetryPolicy(retryPolicy);
-
-    this.apiClient = axios.create({
-      baseURL: this.baseUrl,
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${this.apiKey}`,
-      },
-      timeout: timeout ?? 30000,
-    });
-
-    this.apiClient.interceptors.request.use(
-      (requestConfig: InternalAxiosRequestConfig) => {
-        // Attach a retry counter to the request config to track attempts
-        (requestConfig as any).__retryCount = (requestConfig as any).__retryCount || 0;
-        return requestConfig;
-      },
-      (error: any) => {
-        return Promise.reject(error);
-      }
-    );
-
-    this.apiClient.interceptors.response.use(
-      (response: AxiosResponse) => {
-        return response;
-      },
-      async (error: AxiosError<ProblemDetailsResponse>) => {
-        const config = error.config as InternalAxiosRequestConfig & { __retryCount: number };
-        const currentRetryCount = config.__retryCount;
-        const statusCode = error.response?.status;
-
-        if (this.retryPolicy.shouldRetry(currentRetryCount, statusCode)) {
-          config.__retryCount += 1;
-          const delay = this.retryPolicy.calculateRetryDelay(config.__retryCount);
-          await new Promise(resolve => setTimeout(resolve, delay));
-          return this.apiClient(config);
-        }
-
-        return Promise.reject(error);
-      }
-    );
-
-    this.chat = new Chat(this.apiClient);
-    this.files = new Files(this.apiClient);
-    this.webhooks = new Webhooks(this.apiClient, this.apiKey);
+    this.chat = new Chat(apiClient);
+    this.files = new Files(apiClient);
+    this.webhooks = new Webhooks(apiClient, apiKey);
   }
 }

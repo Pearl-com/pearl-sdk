@@ -1,10 +1,9 @@
 // To run this example:
-// 1. Ensure you have the SDK installed: npm install pearl-sdk
+// 1. Install the SDK in your project: npm install @pearl.com/pearl-api-client-sdk
 // 2. Transpile and run:
 //    npx ts-node examples/webhook-signature-verification-example.ts
 
-import { PearlClient } from 'pearl-sdk'; // Import from the installed package name
-import axios from 'axios'; // Import axios for robust error handling
+import { PearlClient, PearlRequestError } from '@pearl.com/pearl-api-client-sdk';
 
 // --- IMPORTANT: Configure your API Key ---
 // Replace 'YOUR_PEARL_API_KEY' with your actual Pearl API Key.
@@ -74,13 +73,17 @@ async function runVerificationExample() {
       console.log("❌ FAILED to identify an intentionally INVALID signature. (UNEXPECTED)");
     }
 
-  } catch (error: any) {
+  } catch (error) {
     console.error("\nAn error occurred during the webhook verification example:");
-    if (axios.isAxiosError(error)) {
+    if (error instanceof PearlRequestError) {
       console.error("Error message:", error.message);
-      if (error.response) {
-        console.error("Status:", error.response.status);
-        console.error("Data:", JSON.stringify(error.response.data, null, 2));
+      if (error.kind === 'http') {
+        console.error("Status:", error.status);
+        console.error("Data:", JSON.stringify(error.data, null, 2));
+      } else if (error.kind === 'network') {
+        console.error("No response received from server.");
+      } else {
+        console.error("Request stopped:", error.kind);
       }
     } else {
       console.error("Unexpected error:", error);

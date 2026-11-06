@@ -1,11 +1,10 @@
 // To run this example:
-// 1. Ensure you have the SDK installed: npm install pearl-sdk
+// 1. Install the SDK and uuid in your project: npm install @pearl.com/pearl-api-client-sdk uuid
 // 2. Transpile and run:
 //    npx ts-node examples/chat-completion-example.ts
 
-import { PearlClient, CONVERSATION_MODES, ChatMessage } from 'pearl-sdk';
-import { v4 as uuidv4 } from 'uuid'; // Ensure uuid is installed: npm install uuid
-import axios from 'axios';
+import { PearlRequestError, PearlClient, CONVERSATION_MODES, ChatMessage } from '@pearl.com/pearl-api-client-sdk';
+import { v4 as uuidv4 } from 'uuid';
 
 // --- IMPORTANT: Configure your API Key ---
 // Replace 'YOUR_PEARL_API_KEY' with your actual Pearl API Key.
@@ -21,7 +20,7 @@ async function runChatCompletionExample() {
   const sessionId = uuidv4();
   // Initialize client with comprehensive configuration for demonstration
   const client = new PearlClient(API_KEY, {
-    timeout: 60000, // 60 seconds timeout
+    timeout: 60000, // 60 seconds per attempt
     retryPolicy: {
       enabled: true,
       maxRetries: 50,
@@ -49,19 +48,17 @@ async function runChatCompletionExample() {
     console.log("\n--- Chat Completion API Response ---");
     console.log("Assistant's message:", chatResponse.choices[0].message.content);
 
-  } catch (error: any) {
+  } catch (error) {
     console.error("\n--- Chat Completion API Error ---");
-    // Axios errors are handled by PearlClient's interceptors, but this catch
-    // demonstrates how to handle final rejections from the SDK call.
-    if (axios.isAxiosError(error)) {
+    if (error instanceof PearlRequestError) {
       console.error("Error message:", error.message);
-      if (error.response) {
-        console.error("Status:", error.response.status);
-        console.error("Data:", JSON.stringify(error.response.data, null, 2));
-      } else if (error.request) {
+      if (error.kind === 'http') {
+        console.error("Status:", error.status);
+        console.error("Data:", JSON.stringify(error.data, null, 2));
+      } else if (error.kind === 'network') {
         console.error("No response received from server.");
       } else {
-        console.error("Error setting up request.");
+        console.error("Request stopped:", error.kind);
       }
     } else {
       console.error("An unexpected error occurred:", error);

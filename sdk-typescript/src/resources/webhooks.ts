@@ -1,4 +1,4 @@
-import { AxiosInstance, AxiosRequestConfig } from 'axios';
+import { HttpClient, PearlRequestOptions } from '../core/HttpClient';
 import { verifyWebhookSignature, computeWebhookSignature } from '../utils/signature-utils';
 import { WebhookEndpointRequest } from '../types';
 
@@ -7,16 +7,16 @@ import { WebhookEndpointRequest } from '../types';
  * and managing webhook endpoints (register/update).
  */
 export class Webhooks {
-    private apiClient: AxiosInstance;
+    private apiClient: HttpClient;
     private readonly webhookSecret: string;
 
     /**
      * Initializes a new instance of the Webhooks resource.
-     * @param apiClient The Axios instance configured for Pearl API communication.
+     * @param apiClient The HTTP client configured for Pearl API communication.
      * @param webhookSecret The secret used to sign and verify webhooks.
      * @throws Error if the webhook secret is not provided.
      */
-    constructor(apiClient: AxiosInstance, webhookSecret: string) {
+    constructor(apiClient: HttpClient, webhookSecret: string) {
         if (!webhookSecret) {
             throw new Error("Webhook secret must be provided to Webhooks resource.");
         }
@@ -59,15 +59,15 @@ export class Webhooks {
      * Corresponds to the POST /webhook API endpoint.
      *
      * @param request The WebhookEndpointRequest containing the webhook endpoint URL.
-     * @param requestConfig Optional Axios request configuration (e.g., custom headers, timeout override).
+     * @param options Optional request options (headers, timeout, signal).
      * @returns A Promise that resolves on successful registration (HTTP 200).
-     * @throws AxiosError on API errors (e.g., 400, 401, 500), which are logged and propagated by PearlClient's interceptors.
+     * @throws PearlRequestError if the request fails (HTTP error, network failure, timeout or abort).
      */
     public async register(
         request: WebhookEndpointRequest,
-        requestConfig?: AxiosRequestConfig
+        options?: PearlRequestOptions
     ): Promise<void> {
-        await this.apiClient.post('/webhook', request, requestConfig);
+        await this.apiClient.post('/webhook', request, options);
     }
 
     /**
@@ -75,14 +75,14 @@ export class Webhooks {
      * Corresponds to the PUT /webhook API endpoint.
      *
      * @param request The WebhookEndpointRequest containing the updated webhook endpoint URL.
-     * @param requestConfig Optional Axios request configuration (e.g., custom headers, timeout override).
+     * @param options Optional request options (headers, timeout, signal).
      * @returns A Promise that resolves on successful update (HTTP 200).
-     * @throws AxiosError on API errors (e.g., 400, 401, 500), which are logged and propagated by PearlClient's interceptors.
+     * @throws PearlRequestError if the request fails (HTTP error, network failure, timeout or abort).
      */
     public async update(
         request: WebhookEndpointRequest,
-        requestConfig?: AxiosRequestConfig
+        options?: PearlRequestOptions
     ): Promise<void> {
-        await this.apiClient.put('/webhook', request, requestConfig);
+        await this.apiClient.put('/webhook', request, options);
     }
 }

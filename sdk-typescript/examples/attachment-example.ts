@@ -9,20 +9,20 @@
 // with the same sessionId before calling client.files.create.
 //
 // To run this example:
-// 1. Ensure you have the SDK installed: npm install pearl-sdk
+// 1. Install the SDK and uuid in your project: npm install @pearl.com/pearl-api-client-sdk uuid
 // 2. Set your API key and IMAGE_PATH below
 // 3. Transpile and run:
 //    npx ts-node examples/attachment-example.ts
 
 import { readFileSync } from 'fs';
 import { v4 as uuidv4 } from 'uuid';
-import axios from 'axios';
 import {
     PearlClient,
+    PearlRequestError,
     CONVERSATION_MODES,
     FILE_PURPOSES,
     ChatMessage
-} from 'pearl-sdk';
+} from '@pearl.com/pearl-api-client-sdk';
 
 const API_KEY = 'YOUR_PEARL_API_KEY';
 const IMAGE_PATH = 'image.png';
@@ -80,13 +80,17 @@ async function runAttachmentExample() {
         );
 
         console.log("Assistant's message:", chatResponse.choices[0].message.content);
-    } catch (error: any) {
+    } catch (error) {
         console.error('\n--- Error ---');
-        if (axios.isAxiosError(error)) {
+        if (error instanceof PearlRequestError) {
             console.error('Error message:', error.message);
-            if (error.response) {
-                console.error('Status:', error.response.status);
-                console.error('Data:', JSON.stringify(error.response.data, null, 2));
+            if (error.kind === 'http') {
+                console.error('Status:', error.status);
+                console.error('Data:', JSON.stringify(error.data, null, 2));
+            } else if (error.kind === 'network') {
+                console.error('No response received from server.');
+            } else {
+                console.error('Request stopped:', error.kind);
             }
         } else {
             console.error('An unexpected error occurred:', error);
